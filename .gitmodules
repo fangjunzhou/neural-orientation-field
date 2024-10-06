@@ -1,0 +1,3 @@
+[submodule "latex-docker"]
+	path = latex-docker
+	url = git@github.com:blang/latex-docker.git
