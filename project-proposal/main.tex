@@ -38,9 +38,24 @@
 
   Another study about this topic tried to tackle this problem by expanding the traditional PatchMatch MVS (PMVS) algorithm to a Line-based PatchMatch MVS (LPMVS) \cite{nam_strand-accurate_nodate}. This method, despite its high accuracy, doesn't capture the volumetric property of human hair.
 
-  \section{Method}
+  In this study, we aim to develop a new method for hair reconstruction. The major goal of this model is to provide detailed growth vector for direct volumetric rendering or as a guidence for hair strand generation.
 
+  \section{Method}
+    \subsection{Data Pre-process}
+
+    Our model will be trained on images of human bust from multiple viewing angles. The preprocessing kernel will extract the projection of the hair growing direction onto the camera viewing plane. This can be done by a simple edge detection kernel such as Gabor filter used in related studies.
+    
+    \subsection{Backbone}
+    
+    The backbone network is similar to NeRF's backbone, primarily consisting of multiple MLP layers and residual connections. The difference is that the input to the network we constructed is the spatial coordinates $(x, y, z)$ of the point to be evaluated, and the output is the direction vector of the hair at that point $v = (v_x, v_y, v_z)$, as well as the opacity parameter $\sigma$. The direction vector is used to describe the growing direction of the hair at this point, while the opacity parameter sigma is used in loss construction to model the occlusion relationships of the hair which will be discussed later.
+    
+    \subsection{Loss Defination}
+    The construction of the model's loss is divided into two parts: occlusion relationship modeling and plane projection of the direction vector. In occlusion relationship modeling, the weighted 3D direction vector is obtained by integrating the direction vectors along the observation direction ray, weighted by the opacity parameter. Similar to NeRF, we can simulate the integration process through sampling specific points on the observation direction ray and discrete the original integral.
+
+    For the second part, we project the weighted 3D direction vector obtained from the first part along the viewing direction onto the camera plane, resulting in the 2D direction vector observed by the camera. The final loss function is constructed by calculating the MSE loss between the 2D direction vector and the ground truth.
+    
   \section{Experiment}
+  
   % Intended experiment
   
 
