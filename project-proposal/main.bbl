@@ -44,6 +44,82 @@
       \verb Ma - Single-View Hair Modeling Using A Hairstyle Databa.pdf:/Users/fangjun/Zotero/storage/9BXWYQA5/Ma - Single-View Hair Modeling Using A Hairstyle Databa.pdf:application/pdf
       \endverb
     \endentry
+    \entry{mildenhall_nerf_2020}{misc}{}
+      \name{author}{6}{}{%
+        {{hash=a3567364ab52973659adf74ee0c6e6f3}{%
+           family={Mildenhall},
+           familyi={M\bibinitperiod},
+           given={Ben},
+           giveni={B\bibinitperiod}}}%
+        {{hash=2d8bed08e2e866c07b46f1258895e6a5}{%
+           family={Srinivasan},
+           familyi={S\bibinitperiod},
+           given={Pratul\bibnamedelima P.},
+           giveni={P\bibinitperiod\bibinitdelim P\bibinitperiod}}}%
+        {{hash=9a18985a5c8b8be23d0ec9de0a3c87b9}{%
+           family={Tancik},
+           familyi={T\bibinitperiod},
+           given={Matthew},
+           giveni={M\bibinitperiod}}}%
+        {{hash=4ef9d5fb0962f22456e4c8ea6910659a}{%
+           family={Barron},
+           familyi={B\bibinitperiod},
+           given={Jonathan\bibnamedelima T.},
+           giveni={J\bibinitperiod\bibinitdelim T\bibinitperiod}}}%
+        {{hash=e7e274981ceb0dd123d44af35cc7bedf}{%
+           family={Ramamoorthi},
+           familyi={R\bibinitperiod},
+           given={Ravi},
+           giveni={R\bibinitperiod}}}%
+        {{hash=96e30bdc2cf905aa1109c46617b16252}{%
+           family={Ng},
+           familyi={N\bibinitperiod},
+           given={Ren},
+           giveni={R\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {arXiv}%
+      }
+      \strng{namehash}{094342ecc1d4c7df1a909882dd0a89cd}
+      \strng{fullhash}{5df0df9265ea6976fca3ea466992dede}
+      \strng{bibnamehash}{094342ecc1d4c7df1a909882dd0a89cd}
+      \strng{authorbibnamehash}{094342ecc1d4c7df1a909882dd0a89cd}
+      \strng{authornamehash}{094342ecc1d4c7df1a909882dd0a89cd}
+      \strng{authorfullhash}{5df0df9265ea6976fca3ea466992dede}
+      \field{sortinit}{M}
+      \field{sortinithash}{cfd219b90152c06204fab207bc6c7cab}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{shorttitle}
+      \field{abstract}{We present a method that achieves state-of-the-art results for synthesizing novel views of complex scenes by optimizing an underlying continuous volumetric scene function using a sparse set of input views. Our algorithm represents a scene using a fully-connected (non-convolutional) deep network, whose input is a single continuous 5D coordinate (spatial location \$(x,y,z)\$ and viewing direction \$({\textbackslash}theta, {\textbackslash}phi)\$) and whose output is the volume density and view-dependent emitted radiance at that spatial location. We synthesize views by querying 5D coordinates along camera rays and use classic volume rendering techniques to project the output colors and densities into an image. Because volume rendering is naturally differentiable, the only input required to optimize our representation is a set of images with known camera poses. We describe how to effectively optimize neural radiance fields to render photorealistic novel views of scenes with complicated geometry and appearance, and demonstrate results that outperform prior work on neural rendering and view synthesis. View synthesis results are best viewed as videos, so we urge readers to view our supplementary video for convincing comparisons.}
+      \field{day}{3}
+      \field{eprinttype}{arxiv}
+      \field{month}{8}
+      \field{number}{{arXiv}:2003.08934}
+      \field{shorttitle}{{NeRF}}
+      \field{title}{{NeRF}: Representing Scenes as Neural Radiance Fields for View Synthesis}
+      \field{urlday}{6}
+      \field{urlmonth}{10}
+      \field{urlyear}{2024}
+      \field{year}{2020}
+      \field{dateera}{ce}
+      \field{urldateera}{ce}
+      \verb{doi}
+      \verb 10.48550/arXiv.2003.08934
+      \endverb
+      \verb{eprint}
+      \verb 2003.08934 [cs]
+      \endverb
+      \verb{file}
+      \verb arXiv Fulltext PDF:/Users/fangjun/Zotero/storage/WRVG8FTW/Mildenhall et al. - 2020 - NeRF Representing Scenes as Neural Radiance Field.pdf:application/pdf;arXiv.org Snapshot:/Users/fangjun/Zotero/storage/MZHV8RUC/2003.html:text/html
+      \endverb
+      \verb{urlraw}
+      \verb http://arxiv.org/abs/2003.08934
+      \endverb
+      \verb{url}
+      \verb http://arxiv.org/abs/2003.08934
+      \endverb
+      \keyw{Computer Science - Computer Vision and Pattern Recognition,Computer Science - Graphics}
+    \endentry
     \entry{nam_strand-accurate_nodate}{article}{}
       \name{author}{4}{}{%
         {{hash=b436258dc0e62b689d425b9684271c4a}{%
