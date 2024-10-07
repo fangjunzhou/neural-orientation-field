@@ -1927,6 +1927,13 @@
     <bcf:citekey order="1">zheng_hairstep_2023</bcf:citekey>
     <bcf:citekey order="1">wu_neuralhdhair_2022</bcf:citekey>
     <bcf:citekey order="1">ma_single-view_nodate</bcf:citekey>
+    <bcf:citekey order="2">saito_3d_2018</bcf:citekey>
+    <bcf:citekey order="3">zheng_hairstep_2023</bcf:citekey>
+    <bcf:citekey order="4">saito_3d_2018</bcf:citekey>
+    <bcf:citekey order="5">sklyarova_neural_2023</bcf:citekey>
+    <bcf:citekey order="6">sklyarova_neural_2023</bcf:citekey>
+    <bcf:citekey order="7">rosu_neural_2022</bcf:citekey>
+    <bcf:citekey order="8">nam_strand-accurate_nodate</bcf:citekey>
   </bcf:section>
   <!-- SORTING TEMPLATES -->
   <bcf:sortingtemplate name="nty">
