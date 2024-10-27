@@ -51,6 +51,16 @@ def main():
         type=pathlib.Path
     )
     parser.add_argument(
+        "-p",
+        "--path",
+        default=pathlib.Path("./nof-config.json"),
+        help="""
+        The project config json file path. The default path is 
+        ./nof-config.json
+        """,
+        type=pathlib.Path
+    )
+    parser.add_argument(
         "--clear",
         action="store_true",
         help="""
@@ -64,6 +74,7 @@ def main():
         output_path=args.output,
         cache_path=args.cache
     )
+    config_path: pathlib.Path = args.path
     clear: bool = args.clear
     # ---------------------- Project Setup  ---------------------- #
     # Check input directory.
@@ -86,8 +97,7 @@ def main():
                   "are you sure to continue?")
             if not utils.confirm():
                 sys.exit(0)
-            logging.debug("Removing " +
-                         f"{str(project_config.output_path.resolve())}")
+            print(f"Removing {str(project_config.output_path.resolve())}")
             shutil.rmtree(project_config.output_path)
             project_config.output_path.mkdir(parents=True)
     else:
@@ -104,12 +114,19 @@ def main():
                   "are you sure to continue?")
             if not utils.confirm():
                 sys.exit(0)
-            logging.debug("Removing " +
-                         f"{str(project_config.cache_path.resolve())}")
+            print(f"Removing {str(project_config.cache_path.resolve())}")
             shutil.rmtree(project_config.cache_path)
             project_config.cache_path.mkdir(parents=True)
     else:
         project_config.cache_path.mkdir(parents=True)
+    # Save the config.
+    with open(config_path, "w") as config_file:
+        json.dump(
+            project_config.to_dict(),
+            config_file,
+            indent=2
+        )
+    print(f"Project config saved to {str(config_path.resolve())}")
 
 if __name__ == "__main__":
     main()
