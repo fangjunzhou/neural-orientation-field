@@ -1,0 +1,7 @@
+[project]
+name = "neural-orientation-field"
+version = "0.1.0"
+description = "Stanford CS229 final project."
+readme = "README.md"
+requires-python = "==3.11.*"
+dependencies = []
