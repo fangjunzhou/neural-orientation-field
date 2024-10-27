@@ -4,4 +4,12 @@ version = "0.1.0"
 description = "Stanford CS229 final project."
 readme = "README.md"
 requires-python = "==3.11.*"
-dependencies = []
+dependencies = [
+    "ipywidgets>=8.1.5",
+    "jupyterlab>=4.2.5",
+    "matplotlib>=3.9.2",
+    "numpy>=2.1.2",
+    "pycolmap>=3.10.0",
+    "pyvista[all]>=0.44.1",
+    "scipy>=1.14.1",
+]
