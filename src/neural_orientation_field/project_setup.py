@@ -5,7 +5,7 @@ import pathlib
 import json
 import sys
 
-import utils
+import neural_orientation_field.utils as utils
 
 logging.basicConfig(level=logging.DEBUG)
 

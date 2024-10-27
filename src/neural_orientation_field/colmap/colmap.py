@@ -9,7 +9,7 @@ import numpy as np
 import pycolmap
 import pyvista as pv
 
-import utils
+import neural_orientation_field.utils as utils
 
 def main():
     # ---------------------- Argument Setup ---------------------- #

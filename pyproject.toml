@@ -13,3 +13,7 @@ dependencies = [
     "pyvista[all]>=0.44.1",
     "scipy>=1.14.1",
 ]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
