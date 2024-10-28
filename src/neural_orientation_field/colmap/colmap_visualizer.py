@@ -154,6 +154,7 @@ def main():
         show_one_cam: bool
         cam_id: int
         cam_image: np.ndarray | None = None
+        init: bool = True
 
         def draw(self):
             """Redraw the scene."""
@@ -185,28 +186,54 @@ def main():
     app_state.draw()
 
     def gui():
+        main_viewport = imgui.get_main_viewport()
+        imgui.set_next_window_pos(main_viewport.work_pos)
+        imgui.set_next_window_size(main_viewport.work_size)
+        imgui.set_next_window_viewport(main_viewport.id_)
+        imgui.push_style_var(imgui.StyleVar_.window_rounding.value, 0)
+        imgui.push_style_var(imgui.StyleVar_.window_border_size.value, 0)
+        dockspace_flag = imgui.DockNodeFlags_.passthru_central_node.value
+        window_flags = imgui.WindowFlags_.no_nav_focus.value |\
+            imgui.WindowFlags_.no_docking.value |\
+            imgui.WindowFlags_.no_title_bar.value |\
+            imgui.WindowFlags_.no_resize.value |\
+            imgui.WindowFlags_.no_move.value |\
+            imgui.WindowFlags_.no_collapse.value |\
+            imgui.WindowFlags_.no_background.value
+        with imgui_ctx.begin("main", flags=window_flags):
+            imgui.pop_style_var(2)
+            dockspace_id = imgui.dock_space(
+                imgui.get_id("dock_space"),
+                flags=dockspace_flag
+            )
+        if (app_state.init):
+            app_state.init = False
+            imgui.internal.dock_builder_remove_node(dockspace_id)
+            imgui.internal.dock_builder_add_node(dockspace_id)
+            dock1 = imgui.internal.dock_builder_split_node(
+                dockspace_id,
+                imgui.Dir.left,
+                0.75
+            )
+            imgui.internal.dock_builder_dock_window(
+                "PyVista Plotter",
+                dock1.id_at_dir
+            )
+            imgui.internal.dock_builder_dock_window(
+                "Plotter Control",
+                dock1.id_at_opposite_dir
+            )
+            imgui.internal.dock_builder_finish(dockspace_id)
         # ---------------------- Immediate GUI  ---------------------- #
-        control_panel_width = max(300, imgui.get_content_region_max().x * 0.2)
         # PyVista plotter window.
-        with imgui_ctx.begin_child(
-            "pyvista_plotter",
-            size=imgui.ImVec2(
-                imgui.get_content_region_avail().x - control_panel_width,
-                imgui.get_content_region_max().y
-            ),
-            child_flags=imgui.ChildFlags_.border.value
-        ):
+        imgui.set_next_window_size_constraints(
+            size_min=imgui.ImVec2(300, 200),
+            size_max=imgui.ImVec2(imgui.FLT_MAX, imgui.FLT_MAX)
+        )
+        with imgui_ctx.begin("PyVista Plotter"):
             pl.render_imgui()
 
-        imgui.same_line()
-
-        with imgui_ctx.begin_child(
-            "plotter_control",
-            size=imgui.ImVec2(
-                control_panel_width,
-                imgui.get_content_region_avail().y
-            )
-        ):
+        with imgui_ctx.begin("Plotter Control"):
             # --------------------- Trim Point Cloud --------------------- #
             imgui.separator_text("Point Cloud Range")
             # Trim point cloud checkbox.
@@ -266,7 +293,6 @@ def main():
                     size=imgui.ImVec2(imgui.get_content_region_avail().x, 0),
                     is_bgr_or_bgra=False
                 )
-
 
     immapp.run(
         gui_function=gui,
