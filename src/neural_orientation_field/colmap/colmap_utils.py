@@ -63,3 +63,25 @@ def get_camera_poses(model: pycolmap.Reconstruction):
         image_file_names.append(image.name)
 
     return cam_transforms, cam_params, image_file_names
+
+def get_projection_mat(f: float, cx: float, cy: float, near:float, far: float):
+    """Get the projection matrix given the camera parameter and clipping 
+    distance.
+
+    Args:
+        f: focal length.
+        cx: half width of the focal plane.
+        cy: half hight of the focal plane.
+        near: near clipping distance.
+        far: far clipping distance.
+
+    Returns:
+        A 4x4 projection matrix from the eye space to the clipping space. To
+        further convert to NDC space, divide all coordinate by z.
+    """
+    return np.array([
+        [f/cx, 0, 0, 0],
+        [0, f/cy, 0, 0],
+        [0, 0, -(far + near)/(far - near), 2*far*near/(far - near)],
+        [0, 0, -1, 0]
+    ])

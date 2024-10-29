@@ -106,7 +106,9 @@ def main():
 
     def draw_cameras(
         cam_transforms: np.ndarray,
-        cam_params: np.ndarray
+        cam_params: np.ndarray,
+        nc: float,
+        fc: float
     ):
         """Draw camera gizmos.
 
@@ -119,50 +121,44 @@ def main():
         num_cam = cam_transforms.shape[0]
         cam_transes = np.zeros((num_cam, 3))
         cam_ups = np.zeros((num_cam, 3))
-        cam_gizmos_v = np.zeros((num_cam * 5, 3))
-        cam_gizmos_e = np.zeros((num_cam * 8, 3), dtype=int)
+        cam_gizmos_v = np.zeros((num_cam * 8, 3))
+        cam_gizmos_e = np.zeros((num_cam * 12, 3), dtype=int)
         for i in range(num_cam):
             # Inverse of camera transformation.
             # The xyz bases of the inverse transformation points to the right, 
             # down, and forward to the camera.
-            cam_transform = np.linalg.inv(cam_transforms[i])
+            inv_cam_transform = np.linalg.inv(cam_transforms[i])
             cam_transes[i] = np.matmul(
-                cam_transform,
+                inv_cam_transform,
                 np.array([0, 0, 0, 1])
             )[:3]
-            cam_ups[i] = np.matmul(cam_transform, np.array([0, -1, 0, 0]))[:3]
+            cam_ups[i] = np.matmul(inv_cam_transform, np.array([0, -1, 0, 0]))[:3]
             # Camera parameters.
             f, cx, cy = cam_params[i]
-            dx = cx / f
-            dy = cy / f
-            cam_gizmos_v[i*5 + 0] = np.matmul(
-                cam_transform,
-                np.array([0, 0, 0, 1])
-            )[:3]
-            cam_gizmos_v[i*5 + 1] = np.matmul(
-                cam_transform,
-                np.array([dx, dy, 1, 1])
-            )[:3]
-            cam_gizmos_v[i*5 + 2] = np.matmul(
-                cam_transform,
-                np.array([dx, -dy, 1, 1])
-            )[:3]
-            cam_gizmos_v[i*5 + 3] = np.matmul(
-                cam_transform,
-                np.array([-dx, dy, 1, 1])
-            )[:3]
-            cam_gizmos_v[i*5 + 4] = np.matmul(
-                cam_transform,
-                np.array([-dx, -dy, 1, 1])
-            )[:3]
-            cam_gizmos_e[i*8 + 0] = [2, i*5 + 0, i*5 + 1]
-            cam_gizmos_e[i*8 + 1] = [2, i*5 + 0, i*5 + 2]
-            cam_gizmos_e[i*8 + 2] = [2, i*5 + 0, i*5 + 3]
-            cam_gizmos_e[i*8 + 3] = [2, i*5 + 0, i*5 + 4]
-            cam_gizmos_e[i*8 + 4] = [2, i*5 + 1, i*5 + 2]
-            cam_gizmos_e[i*8 + 5] = [2, i*5 + 3, i*5 + 4]
-            cam_gizmos_e[i*8 + 6] = [2, i*5 + 1, i*5 + 3]
-            cam_gizmos_e[i*8 + 7] = [2, i*5 + 2, i*5 + 4]
+            inv_ndc_proj = np.linalg.inv(
+                colutils.get_projection_mat(f, cx, cy, nc, fc)
+            )
+            for ix, x in enumerate([-1, 1]):
+                for iy, y in enumerate([-1, 1]):
+                    for iz, z in enumerate([-1, 1]):
+                        j = ix * 4 + iy * 2 + iz
+                        w = -nc if z == -1 else -fc
+                        cam_gizmos_v[i*8 + j] = np.matmul(
+                            np.matmul(inv_cam_transform, inv_ndc_proj),
+                            np.array([x*w, y*w, z*w, w])
+                        )[:3]
+            cam_gizmos_e[i*12 + 0] = [2, i*8 + 0, i*8 + 1]
+            cam_gizmos_e[i*12 + 1] = [2, i*8 + 2, i*8 + 3]
+            cam_gizmos_e[i*12 + 2] = [2, i*8 + 0, i*8 + 2]
+            cam_gizmos_e[i*12 + 3] = [2, i*8 + 1, i*8 + 3]
+            cam_gizmos_e[i*12 + 4] = [2, i*8 + 4, i*8 + 5]
+            cam_gizmos_e[i*12 + 5] = [2, i*8 + 6, i*8 + 7]
+            cam_gizmos_e[i*12 + 6] = [2, i*8 + 4, i*8 + 6]
+            cam_gizmos_e[i*12 + 7] = [2, i*8 + 5, i*8 + 7]
+            cam_gizmos_e[i*12 + 8] = [2, i*8 + 0, i*8 + 4]
+            cam_gizmos_e[i*12 + 9] = [2, i*8 + 1, i*8 + 5]
+            cam_gizmos_e[i*12 + 10] = [2, i*8 + 2, i*8 + 6]
+            cam_gizmos_e[i*12 + 11] = [2, i*8 + 3, i*8 + 7]
         # Draw camera mesh.
         cam_points = pv.PolyData(cam_transes)
         cam_points["up"] = cam_ups
@@ -179,16 +175,25 @@ def main():
 
     @dataclass
     class AppState:
-        # Point cloud.
+        # ----------------------- Point Cloud  ----------------------- #
+        # If trimming the point cloud.
         trim_point_cloud: bool
+        # Trimming distance.
         trim_distance: float
-        points: np.ndarray
-        colors: np.ndarray
-        # Camera.
+        # -------------------------- Camera -------------------------- #
+        # Showing single camera view.
         show_one_cam: bool
         cam_id: int
+        # Near and far clipping distance.
+        nc_distance: float
+        fc_distance: float
+        # ---------------------- Internal State ---------------------- #
+        # Point cloud.
+        points: np.ndarray
+        colors: np.ndarray
+        # Display current camera image.
         cam_image: np.ndarray | None = None
-        # Misc
+        # If the app is initialized for the first time (for dockspace).
         init: bool = True
 
         def draw(self):
@@ -199,10 +204,17 @@ def main():
             if self.show_one_cam:
                 draw_cameras(
                     cam_transforms[self.cam_id].reshape(1, 4, 4),
-                    cam_params[self.cam_id].reshape(1, 3)
+                    cam_params[self.cam_id].reshape(1, 3),
+                    self.nc_distance,
+                    self.fc_distance
                 )
             else:
-                draw_cameras(cam_transforms, cam_params)
+                draw_cameras(
+                    cam_transforms,
+                    cam_params,
+                    self.nc_distance,
+                    self.fc_distance
+                )
 
         def load_cam_image(self):
             """Load image as np.ndarray"""
@@ -217,6 +229,8 @@ def main():
         colors=colors,
         show_one_cam=False,
         cam_id=0,
+        nc_distance=0.5,
+        fc_distance=1
     )
     app_state.draw()
 
@@ -281,6 +295,19 @@ def main():
                     app_state.draw()
             # ----------------------- Camera View  ----------------------- #
             imgui.separator_text("Camera View")
+            changed, new_nc_distance, new_fc_distance = imgui.drag_float_range2(
+                "Clipping Range",
+                v_current_min=app_state.nc_distance,
+                v_current_max=app_state.fc_distance,
+                v_min=0.01,
+                v_max=20,
+                v_speed=0.1
+            )
+            if changed:
+                if new_nc_distance < new_fc_distance:
+                    app_state.nc_distance = new_nc_distance
+                    app_state.fc_distance = new_fc_distance
+                    app_state.draw()
             changed, new_one_cam = imgui.checkbox(
                 "Select One Camera",
                 app_state.show_one_cam
