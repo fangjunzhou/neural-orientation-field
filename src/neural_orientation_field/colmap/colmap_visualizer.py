@@ -186,6 +186,7 @@ def main():
         # -------------------------- Camera -------------------------- #
         # Showing single camera view.
         show_one_cam: bool
+        show_camera_point: bool
         cam_id: int
         # Near and far clipping distance.
         nc_distance: float
@@ -256,11 +257,11 @@ def main():
 
             self.point_ax.clear()
             self.point_ax.scatter(
-                -projected_points[:, 0],
+                projected_points[:, 0],
                 projected_points[:, 1],
                 c=self.colors[projected_norms < 1, :]
             )
-            self.point_ax.set_xlim(-1, 1)
+            self.point_ax.set_xlim(1, -1)
             self.point_ax.set_ylim(-1, 1)
             self.point_ax.set_aspect(cy/cx)
 
@@ -271,6 +272,7 @@ def main():
         points=points,
         colors=colors,
         show_one_cam=False,
+        show_camera_point=False,
         cam_id=0,
         nc_distance=0.1,
         fc_distance=10,
@@ -384,13 +386,20 @@ def main():
                         size=imgui.ImVec2(imgui.get_content_region_avail().x, 0),
                         is_bgr_or_bgra=False
                     )
+                changed, new_camera_point = imgui.checkbox(
+                    "Show Camera Points",
+                    app_state.show_camera_point
+                )
+                if changed:
+                    app_state.show_camera_point = new_camera_point
                 if type(app_state.point_fig) is matplotlib.figure.Figure:
-                    imgui_fig.fig(
-                        "Point Cloud Plot",
-                        app_state.point_fig,
-                        refresh_image=True,
-                        size=imgui.ImVec2(imgui.get_content_region_avail().x, 0)
-                    )
+                    if app_state.show_camera_point:
+                        imgui_fig.fig(
+                            "Point Cloud Plot",
+                            app_state.point_fig,
+                            refresh_image=True,
+                            size=imgui.ImVec2(imgui.get_content_region_avail().x, 0)
+                        )
 
     immapp.run(
         gui_function=gui,
