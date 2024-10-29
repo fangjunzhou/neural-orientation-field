@@ -84,8 +84,8 @@ def main():
     max_dist = np.amax(dists)
     min_dist = np.amin(dists)
     # Extract camera poses.
-    cam_transes, cam_rots, cam_params, image_file_names = \
-        colutils.get_camera_poses(model)
+    cam_transforms, cam_params, image_file_names = \
+            colutils.get_camera_poses(model)
     # ------------------- COLMAP Visualization ------------------- #
     pl = ImguiPlotter()
 
@@ -105,43 +105,56 @@ def main():
         )
 
     def draw_cameras(
-        cam_transes: np.ndarray,
-        cam_rots: np.ndarray,
+        cam_transforms: np.ndarray,
         cam_params: np.ndarray
     ):
         """Draw camera gizmos.
 
         Args:
-            cam_transes: (num_cam, 3) np.ndarray containing all the camera 
-            position.
-            cam_rots: (num_cams, 4) np.ndarray containing all the camera 
-            rotation as (x, y, z, w) quaternions.
+            cam_transforms: (num_images, 4, 4) np.ndarray containing the 
+            transformation matrix for each camera in homogeneous coordinate.
             cam_params: (num_cams, 3) np.ndarray containing all the camera 
             parameters as (f, cx, cy) pairs.
         """
-        num_cam = cam_transes.shape[0]
-        cam_xs = np.zeros((num_cam, 3))
-        cam_ys = np.zeros((num_cam, 3))
-        cam_zs = np.zeros((num_cam, 3))
+        num_cam = cam_transforms.shape[0]
+        cam_transes = np.zeros((num_cam, 3))
+        cam_ups = np.zeros((num_cam, 3))
         cam_gizmos_v = np.zeros((num_cam * 5, 3))
         cam_gizmos_e = np.zeros((num_cam * 8, 3), dtype=int)
         for i in range(num_cam):
-            # Camera transposition and orientation.
-            cam_trans = cam_transes[i]
-            cam_rot = cam_rots[i]
-            cam_x, cam_y, cam_z = colutils.get_bases_from_quat(cam_rot)
-            cam_xs[i] = cam_x
-            cam_ys[i] = cam_y
-            cam_zs[i] = cam_z
+            # Inverse of camera transformation.
+            # The xyz bases of the inverse transformation points to the right, 
+            # down, and forward to the camera.
+            cam_transform = np.linalg.inv(cam_transforms[i])
+            cam_transes[i] = np.matmul(
+                cam_transform,
+                np.array([0, 0, 0, 1])
+            )[:3]
+            cam_ups[i] = np.matmul(cam_transform, np.array([0, -1, 0, 0]))[:3]
             # Camera parameters.
             f, cx, cy = cam_params[i]
             dx = cx / f
             dy = cy / f
-            cam_gizmos_v[i*5 + 0] = cam_trans
-            cam_gizmos_v[i*5 + 1] = cam_trans + cam_z + cam_x * dx + cam_y * dy
-            cam_gizmos_v[i*5 + 2] = cam_trans + cam_z + cam_x * dx - cam_y * dy
-            cam_gizmos_v[i*5 + 3] = cam_trans + cam_z - cam_x * dx + cam_y * dy
-            cam_gizmos_v[i*5 + 4] = cam_trans + cam_z - cam_x * dx - cam_y * dy
+            cam_gizmos_v[i*5 + 0] = np.matmul(
+                cam_transform,
+                np.array([0, 0, 0, 1])
+            )[:3]
+            cam_gizmos_v[i*5 + 1] = np.matmul(
+                cam_transform,
+                np.array([dx, dy, 1, 1])
+            )[:3]
+            cam_gizmos_v[i*5 + 2] = np.matmul(
+                cam_transform,
+                np.array([dx, -dy, 1, 1])
+            )[:3]
+            cam_gizmos_v[i*5 + 3] = np.matmul(
+                cam_transform,
+                np.array([-dx, dy, 1, 1])
+            )[:3]
+            cam_gizmos_v[i*5 + 4] = np.matmul(
+                cam_transform,
+                np.array([-dx, -dy, 1, 1])
+            )[:3]
             cam_gizmos_e[i*8 + 0] = [2, i*5 + 0, i*5 + 1]
             cam_gizmos_e[i*8 + 1] = [2, i*5 + 0, i*5 + 2]
             cam_gizmos_e[i*8 + 2] = [2, i*5 + 0, i*5 + 3]
@@ -152,7 +165,7 @@ def main():
             cam_gizmos_e[i*8 + 7] = [2, i*5 + 2, i*5 + 4]
         # Draw camera mesh.
         cam_points = pv.PolyData(cam_transes)
-        cam_points["up"] = cam_ys
+        cam_points["up"] = cam_ups
         cam_up_arrows = cam_points.glyph(
             orient="up", # pyright: ignore
             scale=False,
@@ -185,12 +198,11 @@ def main():
             draw_point_cloud(self.points, self.colors)
             if self.show_one_cam:
                 draw_cameras(
-                    cam_transes[self.cam_id].reshape(1, -1),
-                    cam_rots[self.cam_id].reshape(1, -1),
-                    cam_params[self.cam_id].reshape(1, -1)
+                    cam_transforms[self.cam_id].reshape(1, 4, 4),
+                    cam_params[self.cam_id].reshape(1, 3)
                 )
             else:
-                draw_cameras(cam_transes, cam_rots, cam_params)
+                draw_cameras(cam_transforms, cam_params)
 
         def load_cam_image(self):
             """Load image as np.ndarray"""
@@ -282,7 +294,7 @@ def main():
                     "Camera ID",
                     app_state.cam_id,
                     v_min=0,
-                    v_max=cam_transes.shape[0]-1
+                    v_max=cam_transforms.shape[0]-1
                 )
                 if changed:
                     app_state.cam_id = new_cam_id
