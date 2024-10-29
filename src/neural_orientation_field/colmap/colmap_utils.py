@@ -9,8 +9,10 @@ def get_point_cloud(model: pycolmap.Reconstruction):
         model: COLMAP reconstruction model.
 
     Returns: (points: np.ndarray, colors: np.ndarray)
-        points.shape = (num_points, 3)
-        colors.shape = (num_points, 3)
+        points: (num_points, 3) np.ndarray containing all the positions of the 
+        point.
+        colors: (num_points, 3) np.ndarray containing all the colors of the 
+        point.
     """
     num_points = len(model.points3D)
     points = np.zeros((num_points, 3))
@@ -31,11 +33,14 @@ def get_camera_poses(model: pycolmap.Reconstruction):
 
     Returns: (cam_transes: np.ndarray, cam_rots, np.ndarray, 
     cam_params: np.ndarray, image_file_names: list[str])
-        cam_transes.shape = (num_images, 3)
-        cam_rots.shape = (num_images, 4)
-        cam_params.shape = (num_images, 3)
-
-        cam_params[i, :] = [f_i, cx_i, cy_i]
+        cam_transes: (num_images, 3) np.ndarray containing all the positions 
+        of the cameras.
+        cam_rots: (num_cams, 4) np.ndarray containing all the camera 
+        rotation as (x, y, z, w) quaternions.
+        cam_params: (num_cams, 3) np.ndarray containing all the camera 
+        parameters as (f, cx, cy) pairs.
+        image_file_names: a list of str of size num_cams. Containing all the 
+        file names of the image to the corresponding camera.
     """
     images = model.images.values()
     num_images = len(images)
@@ -65,9 +70,9 @@ def get_bases_from_quat(quat: np.ndarray):
         quat: camera rotation.
 
     Returns: (cam_x: np.ndarray, cam_y: np.ndarray, cam_z: np.ndarray)
-        cam_x points to the left of the camera.
-        cam_y points to the up of the camera.
-        cam_z points to the front of the camera.
+        cam_x: points to the left of the camera.
+        cam_y: points to the up of the camera.
+        cam_z: points to the front of the camera.
     """
     rot_mat = transform.Rotation.from_quat(quat).as_matrix()
     cam_x: np.ndarray = np.matmul(rot_mat, np.array([-1, 0, 0]))

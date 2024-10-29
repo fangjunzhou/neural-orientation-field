@@ -89,6 +89,14 @@ def main():
     pl = ImguiPlotter()
 
     def draw_point_cloud(points: np.ndarray, colors: np.ndarray):
+        """Draw point clouds.
+
+        Args:
+            points: (num_points, 3) np.ndarray containing all the position of 
+            the points.
+            colors: (num_points, 3) np.ndarray containing all the color of the 
+            points.
+        """
         pl.add_points(
             points,
             scalars=colors,
@@ -100,6 +108,16 @@ def main():
         cam_rots: np.ndarray,
         cam_params: np.ndarray
     ):
+        """Draw camera gizmos.
+
+        Args:
+            cam_transes: (num_cam, 3) np.ndarray containing all the camera 
+            position.
+            cam_rots: (num_cams, 4) np.ndarray containing all the camera 
+            rotation as (x, y, z, w) quaternions.
+            cam_params: (num_cams, 3) np.ndarray containing all the camera 
+            parameters as (f, cx, cy) pairs.
+        """
         num_cam = cam_transes.shape[0]
         cam_xs = np.zeros((num_cam, 3))
         cam_ys = np.zeros((num_cam, 3))
