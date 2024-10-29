@@ -8,11 +8,14 @@ from dataclasses import dataclass
 from PIL import Image
 import numpy as np
 import scipy.spatial.transform as transform
+import matplotlib.figure
+import matplotlib.axes
+import matplotlib.pyplot as plt
 
 import pycolmap
 import pyvista as pv
 from pyvista_imgui import ImguiPlotter
-from imgui_bundle import imgui, immapp, imgui_ctx, immvision
+from imgui_bundle import imgui, immapp, imgui_ctx, immvision, imgui_fig
 
 import neural_orientation_field.utils as utils
 import neural_orientation_field.imgui_utils as imgui_utils
@@ -192,6 +195,8 @@ def main():
         points: np.ndarray
         colors: np.ndarray
         # Display current camera image.
+        point_ax: matplotlib.axes.Axes
+        point_fig: matplotlib.figure.Figure
         cam_image: np.ndarray | None = None
         # If the app is initialized for the first time (for dockspace).
         init: bool = True
@@ -222,6 +227,44 @@ def main():
             image_file_path = project_config.input_path / image_file_name
             self.cam_image = np.array(Image.open(image_file_path))
 
+        def plot_point_cloud(self):
+            cam_transform = cam_transforms[self.cam_id]
+            f, cx, cy = cam_params[self.cam_id]
+            cam_projection = colutils.get_projection_mat(
+                f,
+                cx,
+                cy,
+                self.nc_distance,
+                self.fc_distance
+            )
+            # Project points to the camera perspective.
+            projected_points = np.matmul(
+                np.matmul(cam_projection, cam_transform),
+                np.concatenate(
+                    (self.points, np.ones((self.points.shape[0], 1))),
+                    axis=1
+                ).T
+            ).T
+            # Convert to NDC coordinate.
+            projected_points = projected_points / np.tile(
+                projected_points[:, 3].reshape(-1, 1), (1, 4)
+            )
+            projected_points = projected_points[:, 0:3]
+            # Filter clipping space.
+            projected_norms = np.max(np.abs(projected_points), axis=1)
+            projected_points = projected_points[projected_norms < 1, :]
+
+            self.point_ax.clear()
+            self.point_ax.scatter(
+                -projected_points[:, 0],
+                projected_points[:, 1],
+                c=self.colors[projected_norms < 1, :]
+            )
+            self.point_ax.set_xlim(-1, 1)
+            self.point_ax.set_ylim(-1, 1)
+            self.point_ax.set_aspect(cy/cx)
+
+    point_fig, point_ax = plt.subplots()
     app_state = AppState(
         trim_point_cloud=False,
         trim_distance=max_dist,
@@ -229,8 +272,10 @@ def main():
         colors=colors,
         show_one_cam=False,
         cam_id=0,
-        nc_distance=0.5,
-        fc_distance=1
+        nc_distance=0.1,
+        fc_distance=10,
+        point_fig=point_fig,
+        point_ax=point_ax
     )
     app_state.draw()
 
@@ -308,6 +353,7 @@ def main():
                     app_state.nc_distance = new_nc_distance
                     app_state.fc_distance = new_fc_distance
                     app_state.draw()
+                    app_state.plot_point_cloud()
             changed, new_one_cam = imgui.checkbox(
                 "Select One Camera",
                 app_state.show_one_cam
@@ -316,6 +362,7 @@ def main():
                 app_state.show_one_cam = new_one_cam
                 app_state.draw()
                 app_state.load_cam_image()
+                app_state.plot_point_cloud()
             if app_state.show_one_cam:
                 changed, new_cam_id = imgui.slider_int(
                     "Camera ID",
@@ -327,15 +374,23 @@ def main():
                     app_state.cam_id = new_cam_id
                     app_state.draw()
                     app_state.load_cam_image()
+                    app_state.plot_point_cloud()
 
-            if app_state.show_one_cam and \
-                (type(app_state.cam_image) is np.ndarray):
-                immvision.image_display_resizable(
-                    image_file_names[app_state.cam_id],
-                    app_state.cam_image,
-                    size=imgui.ImVec2(imgui.get_content_region_avail().x, 0),
-                    is_bgr_or_bgra=False
-                )
+            if app_state.show_one_cam:
+                if type(app_state.cam_image) is np.ndarray:
+                    immvision.image_display_resizable(
+                        image_file_names[app_state.cam_id],
+                        app_state.cam_image,
+                        size=imgui.ImVec2(imgui.get_content_region_avail().x, 0),
+                        is_bgr_or_bgra=False
+                    )
+                if type(app_state.point_fig) is matplotlib.figure.Figure:
+                    imgui_fig.fig(
+                        "Point Cloud Plot",
+                        app_state.point_fig,
+                        refresh_image=True,
+                        size=imgui.ImVec2(imgui.get_content_region_avail().x, 0)
+                    )
 
     immapp.run(
         gui_function=gui,
