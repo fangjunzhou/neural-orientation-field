@@ -15,6 +15,7 @@ from pyvista_imgui import ImguiPlotter
 from imgui_bundle import imgui, immapp, imgui_ctx, immvision
 
 import neural_orientation_field.utils as utils
+import neural_orientation_field.imgui_utils as imgui_utils
 import neural_orientation_field.colmap.colmap_utils as colutils
 
 logging.basicConfig(level=logging.DEBUG)
@@ -165,13 +166,16 @@ def main():
 
     @dataclass
     class AppState:
+        # Point cloud.
         trim_point_cloud: bool
         trim_distance: float
         points: np.ndarray
         colors: np.ndarray
+        # Camera.
         show_one_cam: bool
         cam_id: int
         cam_image: np.ndarray | None = None
+        # Misc
         init: bool = True
 
         def draw(self):
@@ -189,13 +193,14 @@ def main():
                 draw_cameras(cam_transes, cam_rots, cam_params)
 
         def load_cam_image(self):
+            """Load image as np.ndarray"""
             image_file_name: str = image_file_names[self.cam_id]
             image_file_path = project_config.input_path / image_file_name
             self.cam_image = np.array(Image.open(image_file_path))
 
     app_state = AppState(
-        trim_point_cloud=True,
-        trim_distance=10,
+        trim_point_cloud=False,
+        trim_distance=max_dist,
         points=points,
         colors=colors,
         show_one_cam=False,
@@ -204,26 +209,7 @@ def main():
     app_state.draw()
 
     def gui():
-        main_viewport = imgui.get_main_viewport()
-        imgui.set_next_window_pos(main_viewport.work_pos)
-        imgui.set_next_window_size(main_viewport.work_size)
-        imgui.set_next_window_viewport(main_viewport.id_)
-        imgui.push_style_var(imgui.StyleVar_.window_rounding.value, 0)
-        imgui.push_style_var(imgui.StyleVar_.window_border_size.value, 0)
-        dockspace_flag = imgui.DockNodeFlags_.passthru_central_node.value
-        window_flags = imgui.WindowFlags_.no_nav_focus.value |\
-            imgui.WindowFlags_.no_docking.value |\
-            imgui.WindowFlags_.no_title_bar.value |\
-            imgui.WindowFlags_.no_resize.value |\
-            imgui.WindowFlags_.no_move.value |\
-            imgui.WindowFlags_.no_collapse.value |\
-            imgui.WindowFlags_.no_background.value
-        with imgui_ctx.begin("main", flags=window_flags):
-            imgui.pop_style_var(2)
-            dockspace_id = imgui.dock_space(
-                imgui.get_id("dock_space"),
-                flags=dockspace_flag
-            )
+        dockspace_id = imgui_utils.setup_dockspace()
         if (app_state.init):
             app_state.init = False
             imgui.internal.dock_builder_remove_node(dockspace_id)
@@ -315,7 +301,7 @@ def main():
     immapp.run(
         gui_function=gui,
         window_title="COLMAP Visualizer",
-        window_size_auto=False
+        window_size=(960, 540)
     )
 
 if __name__ == "__main__":
