@@ -52,7 +52,7 @@ def main():
         output_dir.mkdir(parents=True)
     # COLMAP pipeline.
     pycolmap.extract_features(
-        db_path, image_dir, camera_model="SIMPLE_PINHOLE")
+        db_path, image_dir, camera_mode=pycolmap.CameraMode.SINGLE, camera_model="SIMPLE_PINHOLE")
     pycolmap.match_exhaustive(db_path)
     maps = pycolmap.incremental_mapping(db_path, image_dir, output_dir)
 
