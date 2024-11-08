@@ -3,6 +3,7 @@ import pycolmap
 import numpy as np
 import scipy.spatial.transform as transform
 
+
 def get_point_cloud(model: pycolmap.Reconstruction):
     """Extract point cloud data from the COLMAP reconstruction.
 
@@ -25,6 +26,7 @@ def get_point_cloud(model: pycolmap.Reconstruction):
     # Scale color.
     colors = colors / 256
     return points, colors
+
 
 def get_camera_poses(model: pycolmap.Reconstruction):
     """Extract camera data for each image from the COLMAP reconstruction.
@@ -64,7 +66,8 @@ def get_camera_poses(model: pycolmap.Reconstruction):
 
     return cam_transforms, cam_params, image_file_names
 
-def get_projection_mat(f: float, cx: float, cy: float, near:float, far: float):
+
+def get_projection_mat(f: float, cx: float, cy: float, near: float, far: float):
     """Get the projection matrix given the camera parameter and clipping 
     distance.
 

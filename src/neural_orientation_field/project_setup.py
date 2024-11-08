@@ -9,6 +9,7 @@ import neural_orientation_field.utils as utils
 
 logging.basicConfig(level=logging.DEBUG)
 
+
 def main():
     # ---------------------- Argument Setup ---------------------- #
     parser = argparse.ArgumentParser(
@@ -92,7 +93,7 @@ def main():
                           "for more details.")
             sys.exit(1)
         if clear:
-            print("The project setup script will remove " + 
+            print("The project setup script will remove " +
                   f"{str(project_config.output_path.resolve())}, " +
                   "are you sure to continue?")
             if not utils.confirm():
@@ -109,7 +110,7 @@ def main():
                           "for more details.")
             sys.exit(1)
         if clear:
-            print("The project setup script will remove " + 
+            print("The project setup script will remove " +
                   f"{str(project_config.cache_path.resolve())}, " +
                   "are you sure to continue?")
             if not utils.confirm():
@@ -127,6 +128,7 @@ def main():
             indent=2
         )
     print(f"Project config saved to {str(config_path.resolve())}")
+
 
 if __name__ == "__main__":
     main()

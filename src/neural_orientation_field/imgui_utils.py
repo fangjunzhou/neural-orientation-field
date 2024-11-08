@@ -1,5 +1,6 @@
 from imgui_bundle import imgui, imgui_ctx
 
+
 def setup_dockspace(name="dock_space"):
     """Setup the dockspace for main viewport.
 

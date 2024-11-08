@@ -11,6 +11,7 @@ import pyvista as pv
 
 import neural_orientation_field.utils as utils
 
+
 def main():
     # ---------------------- Argument Setup ---------------------- #
     parser = argparse.ArgumentParser(
@@ -50,7 +51,8 @@ def main():
     if not output_dir.exists():
         output_dir.mkdir(parents=True)
     # COLMAP pipeline.
-    pycolmap.extract_features(db_path, image_dir, camera_model="SIMPLE_PINHOLE")
+    pycolmap.extract_features(
+        db_path, image_dir, camera_model="SIMPLE_PINHOLE")
     pycolmap.match_exhaustive(db_path)
     maps = pycolmap.incremental_mapping(db_path, image_dir, output_dir)
 

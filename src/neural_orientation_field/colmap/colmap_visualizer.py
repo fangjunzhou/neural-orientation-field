@@ -23,6 +23,7 @@ import neural_orientation_field.colmap.colmap_utils as colutils
 
 logging.basicConfig(level=logging.DEBUG)
 
+
 def main():
     # ---------------------- Argument Setup ---------------------- #
     parser = argparse.ArgumentParser(
@@ -88,7 +89,7 @@ def main():
     min_dist = np.amin(dists)
     # Extract camera poses.
     cam_transforms, cam_params, image_file_names = \
-            colutils.get_camera_poses(model)
+        colutils.get_camera_poses(model)
     # ------------------- COLMAP Visualization ------------------- #
     pl = ImguiPlotter()
 
@@ -128,14 +129,15 @@ def main():
         cam_gizmos_e = np.zeros((num_cam * 12, 3), dtype=int)
         for i in range(num_cam):
             # Inverse of camera transformation.
-            # The xyz bases of the inverse transformation points to the right, 
+            # The xyz bases of the inverse transformation points to the right,
             # down, and forward to the camera.
             inv_cam_transform = np.linalg.inv(cam_transforms[i])
             cam_transes[i] = np.matmul(
                 inv_cam_transform,
                 np.array([0, 0, 0, 1])
             )[:3]
-            cam_ups[i] = np.matmul(inv_cam_transform, np.array([0, -1, 0, 0]))[:3]
+            cam_ups[i] = np.matmul(
+                inv_cam_transform, np.array([0, -1, 0, 0]))[:3]
             # Camera parameters.
             f, cx, cy = cam_params[i]
             inv_ndc_proj = np.linalg.inv(
@@ -166,7 +168,7 @@ def main():
         cam_points = pv.PolyData(cam_transes)
         cam_points["up"] = cam_ups
         cam_up_arrows = cam_points.glyph(
-            orient="up", # pyright: ignore
+            orient="up",  # pyright: ignore
             scale=False,
             factor=0.5
         )
@@ -174,7 +176,6 @@ def main():
         pl.add_mesh(cam_up_arrows, color="blue")
         cam_mesh = pv.PolyData(cam_gizmos_v, cam_gizmos_e)
         pl.add_mesh(cam_mesh, color="red", style="wireframe")
-
 
     @dataclass
     class AppState:
@@ -205,7 +206,7 @@ def main():
         def draw(self):
             """Redraw the scene."""
             pl.clear()
-            pl.show_axes() # pyright: ignore
+            pl.show_axes()  # pyright: ignore
             draw_point_cloud(self.points, self.colors)
             if self.show_one_cam:
                 draw_cameras(
@@ -321,8 +322,10 @@ def main():
             if changed:
                 app_state.trim_point_cloud = new_trim
                 if new_trim:
-                    app_state.points = points[dists <= app_state.trim_distance, :]
-                    app_state.colors = colors[dists <= app_state.trim_distance, :]
+                    app_state.points = points[dists <=
+                                              app_state.trim_distance, :]
+                    app_state.colors = colors[dists <=
+                                              app_state.trim_distance, :]
                 else:
                     app_state.points = points
                     app_state.colors = colors
@@ -337,8 +340,10 @@ def main():
                 )
                 if changed:
                     app_state.trim_distance = new_trim_dist
-                    app_state.points = points[dists <= app_state.trim_distance, :]
-                    app_state.colors = colors[dists <= app_state.trim_distance, :]
+                    app_state.points = points[dists <=
+                                              app_state.trim_distance, :]
+                    app_state.colors = colors[dists <=
+                                              app_state.trim_distance, :]
                     app_state.draw()
             # ----------------------- Camera View  ----------------------- #
             imgui.separator_text("Camera View")
@@ -383,7 +388,8 @@ def main():
                     immvision.image_display_resizable(
                         image_file_names[app_state.cam_id],
                         app_state.cam_image,
-                        size=imgui.ImVec2(imgui.get_content_region_avail().x, 0),
+                        size=imgui.ImVec2(
+                            imgui.get_content_region_avail().x, 0),
                         is_bgr_or_bgra=False
                     )
                 changed, new_camera_point = imgui.checkbox(
@@ -398,7 +404,8 @@ def main():
                             "Point Cloud Plot",
                             app_state.point_fig,
                             refresh_image=True,
-                            size=imgui.ImVec2(imgui.get_content_region_avail().x, 0)
+                            size=imgui.ImVec2(
+                                imgui.get_content_region_avail().x, 0)
                         )
 
     immapp.run(
@@ -406,6 +413,7 @@ def main():
         window_title="COLMAP Visualizer",
         window_size=(960, 540)
     )
+
 
 if __name__ == "__main__":
     main()

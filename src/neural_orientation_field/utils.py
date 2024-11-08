@@ -1,6 +1,7 @@
 import pathlib
 from dataclasses import dataclass
 
+
 @dataclass
 class ProjectConfig:
     """Neural Orientation Field project config dataclass.
@@ -28,6 +29,7 @@ class ProjectConfig:
             output_path=pathlib.Path(config_dict["output_path"]),
             cache_path=pathlib.Path(config_dict["cache_path"])
         )
+
 
 def confirm():
     """Ask for confirm.
