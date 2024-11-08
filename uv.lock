@@ -1158,6 +1158,7 @@ dependencies = [
     { name = "numpy", marker = "(platform_machine != 'aarch64' and python_full_version == '3.11.*') or (platform_system != 'Linux' and python_full_version == '3.11.*') or platform_system == 'Darwin' or (platform_machine == 'aarch64' and platform_system == 'Linux')" },
     { name = "opencv-python", marker = "(platform_machine != 'aarch64' and python_full_version == '3.11.*') or (platform_system != 'Linux' and python_full_version == '3.11.*') or platform_system == 'Darwin' or (platform_machine == 'aarch64' and platform_system == 'Linux')" },
     { name = "pillow", marker = "(platform_machine != 'aarch64' and python_full_version == '3.11.*') or (platform_system != 'Linux' and python_full_version == '3.11.*') or platform_system == 'Darwin' or (platform_machine == 'aarch64' and platform_system == 'Linux')" },
+    { name = "pillow-heif", marker = "(platform_machine != 'aarch64' and python_full_version == '3.11.*') or (platform_system != 'Linux' and python_full_version == '3.11.*') or platform_system == 'Darwin' or (platform_machine == 'aarch64' and platform_system == 'Linux')" },
     { name = "pycolmap", marker = "(platform_machine != 'aarch64' and python_full_version == '3.11.*') or (platform_system != 'Linux' and python_full_version == '3.11.*') or platform_system == 'Darwin' or (platform_machine == 'aarch64' and platform_system == 'Linux')" },
     { name = "pyglm", marker = "(platform_machine != 'aarch64' and python_full_version == '3.11.*') or (platform_system != 'Linux' and python_full_version == '3.11.*') or platform_system == 'Darwin' or (platform_machine == 'aarch64' and platform_system == 'Linux')" },
     { name = "pyvista", extra = ["all"], marker = "(platform_machine != 'aarch64' and python_full_version == '3.11.*') or (platform_system != 'Linux' and python_full_version == '3.11.*') or platform_system == 'Darwin' or (platform_machine == 'aarch64' and platform_system == 'Linux')" },
@@ -1178,6 +1179,7 @@ requires-dist = [
     { name = "numpy", specifier = ">=2.1.2" },
     { name = "opencv-python", specifier = ">=4.10.0.84" },
     { name = "pillow", specifier = ">=11.0.0" },
+    { name = "pillow-heif", specifier = ">=0.20.0" },
     { name = "pycolmap", specifier = ">=3.10.0" },
     { name = "pyglm", specifier = ">=2.7.3" },
     { name = "pyvista", extras = ["all"], specifier = ">=0.44.1" },
@@ -1298,6 +1300,24 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/6e/0e/b5cbad2621377f11313a94aeb44ca55a9639adabcaaa073597a1925f8c26/pillow-11.0.0-cp311-cp311-win32.whl", hash = "sha256:006bcdd307cc47ba43e924099a038cbf9591062e6c50e570819743f5607404f5", size = 2249249 },
     { url = "https://files.pythonhosted.org/packages/dc/83/1470c220a4ff06cd75fc609068f6605e567ea51df70557555c2ab6516b2c/pillow-11.0.0-cp311-cp311-win_amd64.whl", hash = "sha256:52a2d8323a465f84faaba5236567d212c3668f2ab53e1c74c15583cf507a0291", size = 2566769 },
     { url = "https://files.pythonhosted.org/packages/52/98/def78c3a23acee2bcdb2e52005fb2810ed54305602ec1bfcfab2bda6f49f/pillow-11.0.0-cp311-cp311-win_arm64.whl", hash = "sha256:16095692a253047fe3ec028e951fa4221a1f3ed3d80c397e83541a3037ff67c9", size = 2254611 },
+]
+
+[[package]]
+name = "pillow-heif"
+version = "0.20.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "pillow", marker = "(platform_machine != 'aarch64' and python_full_version == '3.11.*') or (platform_system != 'Linux' and python_full_version == '3.11.*') or platform_system == 'Darwin' or (platform_machine == 'aarch64' and platform_system == 'Linux')" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/eb/82/d8eb6a8b5d7dd88e887f977eb6f5deedafd85be53343dcc761f363658db8/pillow_heif-0.20.0.tar.gz", hash = "sha256:cac19c4434ab776f833160d61f3cbeddb347bd8ed2f82205b243eba5c572fa33", size = 16173556 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/5d/42/b65f01c61c833b5680c4c1ee391a0703e5cde2a84dab85ffe283ea24cf0e/pillow_heif-0.20.0-cp311-cp311-macosx_12_0_x86_64.whl", hash = "sha256:8e3bc0bda64cce72e41f6c20a5cf3e24af308a09e146df78d31acb337a8ff58b", size = 5278770 },
+    { url = "https://files.pythonhosted.org/packages/1e/c7/6142e53ffd416e091c0a85b75b5eab87ff5a09e5f7b5d1075cd8559dafde/pillow_heif-0.20.0-cp311-cp311-macosx_14_0_arm64.whl", hash = "sha256:a35e9e17d112573e9568d07c0e2c5cb81218a8f4c0da84a428618c7a746c4d98", size = 3750748 },
+    { url = "https://files.pythonhosted.org/packages/c6/d1/384ba521522a5ee6f10fd24fa7ef90e8b0867ad3a3fe258d45e06ba13b7d/pillow_heif-0.20.0-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:618d63338afb9f49f1fb7b9a421aff6ad71ceb8092855e5988c05ab10dc21152", size = 6766185 },
+    { url = "https://files.pythonhosted.org/packages/e2/f7/929bbd65bcfb6ec5229d4369b55a4c4de31c8bbfc877eff00095a36da1e3/pillow_heif-0.20.0-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:6174d31580081d53f4eadc2428c699a5e47d111e64f136945951d12a9a277936", size = 7591792 },
+    { url = "https://files.pythonhosted.org/packages/64/a2/de9ed7b6c5542970973152c49682ccc568998251fb8cdecd556ee2ffb822/pillow_heif-0.20.0-cp311-cp311-musllinux_1_2_aarch64.whl", hash = "sha256:7d106a1c87587838e9099bbfef9ddc7eef0dd3e77e9b1b8a1292a5f9dc4ad5a2", size = 8126106 },
+    { url = "https://files.pythonhosted.org/packages/fd/29/7982753092f9ce9b397f4f7b16c8ef7490564883000e53d833b8a7fc85a1/pillow_heif-0.20.0-cp311-cp311-musllinux_1_2_x86_64.whl", hash = "sha256:ba9e11f56a5e1fd1d559a1fd60d498f343922affc0e118fb3d4e808902fee1a9", size = 8856313 },
+    { url = "https://files.pythonhosted.org/packages/99/44/89cbe6985e112ff0009b2043123aec1feea46f869d76f44721138ca281c9/pillow_heif-0.20.0-cp311-cp311-win_amd64.whl", hash = "sha256:daf209dd79ad21b21f7b2bbd575f331702d2f1dd0b529c12cdbee00d62c24254", size = 8529526 },
 ]
 
 [[package]]
