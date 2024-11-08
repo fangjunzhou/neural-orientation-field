@@ -137,7 +137,7 @@ def main():
                 np.array([0, 0, 0, 1])
             )[:3]
             cam_ups[i] = np.matmul(
-                inv_cam_transform, np.array([1, 0, 0, 0]))[:3]
+                inv_cam_transform, np.array([0, -1, 0, 0]))[:3]
             # Camera parameters.
             f, cx, cy = cam_params[i]
             inv_ndc_proj = np.linalg.inv(
