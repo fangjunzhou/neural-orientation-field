@@ -4,3 +4,6 @@
 [submodule "multiface"]
 	path = multiface
 	url = git@github.com:facebookresearch/multiface.git
+[submodule "heic-to-png"]
+	path = heic-to-png
+	url = git@github.com:victorlvl47/heic-to-png.git
