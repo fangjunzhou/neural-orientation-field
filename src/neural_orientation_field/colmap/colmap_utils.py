@@ -58,7 +58,10 @@ def get_camera_poses(model: pycolmap.Reconstruction):
         trans_mat[0:3, 3] = cam_trans
         rot_mat = np.identity(4)
         rot_mat[:3, :3] = transform.Rotation.from_quat(cam_rot).as_matrix()
-        cam_transforms[i] = np.matmul(trans_mat, rot_mat)
+        scale_z_mat = np.identity(4)
+        scale_z_mat[2, 2] = -1
+        cam_transforms[i] = np.matmul(
+            scale_z_mat, np.matmul(trans_mat, rot_mat))
         cam_id = image.camera_id
         cam_params[i, :] = model.cameras[cam_id].params
         # Add image file name.
@@ -85,6 +88,6 @@ def get_projection_mat(f: float, cx: float, cy: float, near: float, far: float):
     return np.array([
         [f/cx, 0, 0, 0],
         [0, f/cy, 0, 0],
-        [0, 0, -(far + near)/(far - near), 2*far*near/(far - near)],
+        [0, 0, -(far + near)/(far - near), -2*far*near/(far - near)],
         [0, 0, -1, 0]
     ])

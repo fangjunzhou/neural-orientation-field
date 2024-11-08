@@ -130,14 +130,14 @@ def main():
         for i in range(num_cam):
             # Inverse of camera transformation.
             # The xyz bases of the inverse transformation points to the right,
-            # down, and forward to the camera.
+            # down, and backward to the camera.
             inv_cam_transform = np.linalg.inv(cam_transforms[i])
             cam_transes[i] = np.matmul(
                 inv_cam_transform,
                 np.array([0, 0, 0, 1])
             )[:3]
             cam_ups[i] = np.matmul(
-                inv_cam_transform, np.array([0, -1, 0, 0]))[:3]
+                inv_cam_transform, np.array([1, 0, 0, 0]))[:3]
             # Camera parameters.
             f, cx, cy = cam_params[i]
             inv_ndc_proj = np.linalg.inv(
@@ -147,7 +147,7 @@ def main():
                 for iy, y in enumerate([-1, 1]):
                     for iz, z in enumerate([-1, 1]):
                         j = ix * 4 + iy * 2 + iz
-                        w = -nc if z == -1 else -fc
+                        w = nc if z == -1 else fc
                         cam_gizmos_v[i*8 + j] = np.matmul(
                             np.matmul(inv_cam_transform, inv_ndc_proj),
                             np.array([x*w, y*w, z*w, w])
@@ -262,8 +262,8 @@ def main():
                 projected_points[:, 1],
                 c=self.colors[projected_norms < 1, :]
             )
-            self.point_ax.set_xlim(1, -1)
-            self.point_ax.set_ylim(-1, 1)
+            self.point_ax.set_xlim(-1, 1)
+            self.point_ax.set_ylim(1, -1)
             self.point_ax.set_aspect(cy/cx)
 
     point_fig, point_ax = plt.subplots()
