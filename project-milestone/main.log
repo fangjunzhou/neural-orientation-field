@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.18 (TeX Live 2017) (preloaded format=pdflatex 2018.1.22)  9 NOV 2024 06:50
+This is pdfTeX, Version 3.14159265-2.6-1.40.18 (TeX Live 2017) (preloaded format=pdflatex 2018.1.22)  9 NOV 2024 06:54
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -350,7 +350,7 @@ File: english.lbx 2017/12/19 v3.10 biblatex localization (PK/JW/AB)
 \@quotelevel=\count301
 \@quotereset=\count302
 
-No file main.aux.
+(./main.aux)
 \openout1 = `main.aux'.
 
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 23.
@@ -365,6 +365,7 @@ LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 23.
 LaTeX Font Info:    ... okay on input line 23.
 LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 23.
 LaTeX Font Info:    ... okay on input line 23.
+
 (/usr/local/texlive/2017/texmf-dist/tex/latex/fmtcount/fc-english.def
 File: fc-english.def 2016/01/12
 )
@@ -375,132 +376,50 @@ Package biblatex Info: Automatic encoding selection.
 \openout4 = `main.bcf'.
 
 Package biblatex Info: Trying to load bibliographic data...
-Package biblatex Info: ... file 'main.bbl' not found.
+Package biblatex Info: ... file 'main.bbl' found.
 
-No file main.bbl.
+(./main.bbl)
 Package biblatex Info: Reference section=0 on input line 23.
 Package biblatex Info: Reference segment=0 on input line 23.
 LaTeX Font Info:    External font `cmex10' loaded for size
 (Font)              <14.4> on input line 24.
 LaTeX Font Info:    External font `cmex10' loaded for size
 (Font)              <7> on input line 24.
-
-LaTeX Warning: Citation 'saito_3d_2018' on page 1 undefined on input line 35.
-
-
-LaTeX Warning: Citation 'zheng_hairstep_2023' on page 1 undefined on input line
- 35.
-
-
-LaTeX Warning: Citation 'wu_neuralhdhair_2022' on page 1 undefined on input lin
-e 35.
-
-
-LaTeX Warning: Citation 'ma_single-view_nodate' on page 1 undefined on input li
-ne 35.
-
-
-LaTeX Warning: Citation 'saito_3d_2018' on page 1 undefined on input line 35.
-
-
-LaTeX Warning: Citation 'zheng_hairstep_2023' on page 1 undefined on input line
- 35.
-
-
-LaTeX Warning: Citation 'saito_3d_2018' on page 1 undefined on input line 35.
-
-
-LaTeX Warning: Citation 'sklyarova_neural_2023' on page 1 undefined on input li
-ne 35.
-
-
-Overfull \hbox (31.55984pt too wide) in paragraph at lines 35--36
-\OT1/cmr/m/n/12 This in-cludes some stud-ies about sin-gle view hair syn-the-si
-s [[], [],
- []
-
-
-LaTeX Warning: Citation 'sklyarova_neural_2023' on page 1 undefined on input li
-ne 37.
-
-
-LaTeX Warning: Citation 'rosu_neural_2022' on page 1 undefined on input line 37
-.
-
-
-LaTeX Warning: Citation 'nam_strand-accurate_nodate' on page 1 undefined on inp
-ut line 39.
-
-[1
+ [1
 
 {/usr/local/texlive/2017/texmf-var/fonts/map/pdftex/updmap/pdftex.map}]
-
-LaTeX Warning: Citation 'mildenhall_nerf_2020' on page 2 undefined on input lin
-e 41.
-
-
-LaTeX Warning: Citation 'mildenhall_nerf_2020' on page 2 undefined on input lin
-e 52.
-
 LaTeX Font Info:    External font `cmex10' loaded for size
 (Font)              <12> on input line 52.
 LaTeX Font Info:    External font `cmex10' loaded for size
 (Font)              <8> on input line 52.
 LaTeX Font Info:    External font `cmex10' loaded for size
 (Font)              <6> on input line 52.
-
-LaTeX Warning: Citation 'mildenhall_nerf_2020' on page 2 undefined on input lin
-e 56.
-
-[2]
-
-LaTeX Warning: Citation 'nam_strand-accurate_nodate' on page 3 undefined on inp
-ut line 62.
-
-
-LaTeX Warning: Citation 'nam_strand-accurate_nodate' on page 3 undefined on inp
-ut line 62.
-
-
-Overfull \hbox (93.39317pt too wide) in paragraph at lines 62--63
-\OT1/cmr/m/n/12 and gen-er-a-tive mod-els. Since the fi-nal out-put of our mode
-l dif-fers from that of [[]]
- []
-
-
-LaTeX Warning: Empty bibliography on input line 67.
-
-[3] (./main.aux)
-
-LaTeX Warning: There were undefined references.
-
-
-Package biblatex Warning: Please (re)run Biber on the file:
-(biblatex)                main
-(biblatex)                and rerun LaTeX afterwards.
-
+ [2] [3] (./main.aux)
 Package logreq Info: Writing requests to 'main.run.xml'.
 \openout1 = `main.run.xml'.
 
  ) 
 Here is how much of TeX's memory you used:
- 8164 strings out of 492980
- 144492 string characters out of 6132494
- 568476 words of memory out of 5000000
- 11684 multiletter control sequences out of 15000+600000
- 9108 words of font info for 32 fonts, out of 8000000 for 9000
+ 8209 strings out of 492980
+ 145920 string characters out of 6132494
+ 570476 words of memory out of 5000000
+ 11722 multiletter control sequences out of 15000+600000
+ 9618 words of font info for 34 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 35i,6n,44p,986b,1207s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 45i,6n,45p,2126b,1327s stack positions out of 5000i,500n,10000p,200000b,80000s
 </usr/local/texlive/2017/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb
+></usr/local/texlive/2017/texmf-dist/fonts/type1/public/amsfonts/cm/cmcsc10.pfb
 ></usr/local/texlive/2017/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi12.pfb>
 </usr/local/texlive/2017/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></
 usr/local/texlive/2017/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></us
 r/local/texlive/2017/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/
-local/texlive/2017/texmf-dist/fonts/type1/public/amsfonts/cm/cmr17.pfb>
-Output written on main.pdf (3 pages, 83132 bytes).
+local/texlive/2017/texmf-dist/fonts/type1/public/amsfonts/cm/cmr17.pfb></usr/lo
+cal/texlive/2017/texmf-dist/fonts/type1/public/amsfonts/cm/cmti12.pfb></usr/loc
+al/texlive/2017/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt12.pfb>
+Output written on main.pdf (3 pages, 118293 bytes).
 PDF statistics:
- 38 PDF objects out of 1000 (max. 8388607)
- 26 compressed objects within 1 object stream
+ 50 PDF objects out of 1000 (max. 8388607)
+ 35 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 500000)
  1 words of extra memory for PDF output out of 10000 (max. 10000000)
 
