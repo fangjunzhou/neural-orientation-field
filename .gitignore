@@ -6,3 +6,4 @@ nof-config.json
 COLMAP_Visualizer.ini
 notebooks/.ipynb_checkpoints
 .ipynb_checkpoints/
+src/neural_orientation_field/nerf/tiny_nerf_data.npz

@@ -22,9 +22,11 @@ dependencies = [
     "pyvista[all]>=0.44.1",
     "requests>=2.32.3",
     "scipy>=1.14.1",
+    "tensorboard>=2.18.0",
     "torch>=2.5.1",
     "torchaudio>=2.5.1",
     "torchvision>=0.20.1",
+    "tqdm>=4.67.0",
 ]
 
 [build-system]
