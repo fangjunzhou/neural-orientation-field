@@ -1923,22 +1923,24 @@
     <bcf:datasource type="file" datatype="bibtex">./references.bib</bcf:datasource>
   </bcf:bibdata>
   <bcf:section number="0">
-    <bcf:citekey order="1">saito_3d_2018</bcf:citekey>
-    <bcf:citekey order="1">zheng_hairstep_2023</bcf:citekey>
-    <bcf:citekey order="1">wu_neuralhdhair_2022</bcf:citekey>
-    <bcf:citekey order="1">ma_single-view_nodate</bcf:citekey>
+    <bcf:citekey order="1">metzer_latent-nerf_2022</bcf:citekey>
     <bcf:citekey order="2">saito_3d_2018</bcf:citekey>
-    <bcf:citekey order="3">zheng_hairstep_2023</bcf:citekey>
-    <bcf:citekey order="4">saito_3d_2018</bcf:citekey>
-    <bcf:citekey order="5">sklyarova_neural_2023</bcf:citekey>
+    <bcf:citekey order="2">zheng_hairstep_2023</bcf:citekey>
+    <bcf:citekey order="2">wu_neuralhdhair_2022</bcf:citekey>
+    <bcf:citekey order="2">ma_single-view_nodate</bcf:citekey>
+    <bcf:citekey order="3">saito_3d_2018</bcf:citekey>
+    <bcf:citekey order="4">zheng_hairstep_2023</bcf:citekey>
+    <bcf:citekey order="5">saito_3d_2018</bcf:citekey>
     <bcf:citekey order="6">sklyarova_neural_2023</bcf:citekey>
-    <bcf:citekey order="7">rosu_neural_2022</bcf:citekey>
-    <bcf:citekey order="8">nam_strand-accurate_nodate</bcf:citekey>
-    <bcf:citekey order="9">mildenhall_nerf_2020</bcf:citekey>
+    <bcf:citekey order="7">sklyarova_neural_2023</bcf:citekey>
+    <bcf:citekey order="8">rosu_neural_2022</bcf:citekey>
+    <bcf:citekey order="9">nam_strand-accurate_nodate</bcf:citekey>
     <bcf:citekey order="10">mildenhall_nerf_2020</bcf:citekey>
-    <bcf:citekey order="11">mildenhall_nerf_2020</bcf:citekey>
-    <bcf:citekey order="12">nam_strand-accurate_nodate</bcf:citekey>
-    <bcf:citekey order="13">nam_strand-accurate_nodate</bcf:citekey>
+    <bcf:citekey order="11">zheng_hairstep_2023</bcf:citekey>
+    <bcf:citekey order="12">mildenhall_nerf_2020</bcf:citekey>
+    <bcf:citekey order="13">mildenhall_nerf_2020</bcf:citekey>
+    <bcf:citekey order="14">nam_strand-accurate_nodate</bcf:citekey>
+    <bcf:citekey order="15">nam_strand-accurate_nodate</bcf:citekey>
   </bcf:section>
   <!-- SORTING TEMPLATES -->
   <bcf:sortingtemplate name="nty">

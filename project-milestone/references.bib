@@ -166,3 +166,18 @@
 	date = {2023-04-10},
 	langid = {english},
 }
+
+@misc{metzer_latent-nerf_2022,
+	title = {Latent-{NeRF} for Shape-Guided Generation of 3D Shapes and Textures},
+	url = {http://arxiv.org/abs/2211.07600},
+	abstract = {Text-guided image generation has progressed rapidly in recent years, inspiring major breakthroughs in text-guided shape generation. Recently, it has been shown that using score distillation, one can successfully text-guide a {NeRF} model to generate a 3D object. We adapt the score distillation to the publicly available, and computationally efficient, Latent Diffusion Models, which apply the entire diffusion process in a compact latent space of a pretrained autoencoder. As {NeRFs} operate in image space, a naive solution for guiding them with latent score distillation would require encoding to the latent space at each guidance step. Instead, we propose to bring the {NeRF} to the latent space, resulting in a Latent-{NeRF}. Analyzing our Latent-{NeRF}, we show that while Text-to-3D models can generate impressive results, they are inherently unconstrained and may lack the ability to guide or enforce a specific 3D structure. To assist and direct the 3D generation, we propose to guide our Latent-{NeRF} using a Sketch-Shape: an abstract geometry that defines the coarse structure of the desired object. Then, we present means to integrate such a constraint directly into a Latent-{NeRF}. This unique combination of text and shape guidance allows for increased control over the generation process. We also show that latent score distillation can be successfully applied directly on 3D meshes. This allows for generating high-quality textures on a given geometry. Our experiments validate the power of our different forms of guidance and the efficiency of using latent rendering. Implementation is available at https://github.com/eladrich/latent-nerf},
+	number = {{arXiv}:2211.07600},
+	publisher = {{arXiv}},
+	author = {Metzer, Gal and Richardson, Elad and Patashnik, Or and Giryes, Raja and Cohen-Or, Daniel},
+	urldate = {2024-11-09},
+	date = {2022-11-14},
+	eprinttype = {arxiv},
+	eprint = {2211.07600},
+	keywords = {Computer Science - Computer Vision and Pattern Recognition, Computer Science - Graphics},
+	file = {Full Text PDF:/Users/fangjun/Zotero/storage/3MY5TLI5/Metzer et al. - 2022 - Latent-NeRF for Shape-Guided Generation of 3D Shap.pdf:application/pdf;Snapshot:/Users/fangjun/Zotero/storage/Z6ILBNS2/2211.html:text/html},
+}

@@ -44,6 +44,73 @@
       \verb Ma - Single-View Hair Modeling Using A Hairstyle Databa.pdf:/Users/fangjun/Zotero/storage/9BXWYQA5/Ma - Single-View Hair Modeling Using A Hairstyle Databa.pdf:application/pdf
       \endverb
     \endentry
+    \entry{metzer_latent-nerf_2022}{misc}{}
+      \name{author}{5}{}{%
+        {{hash=4e211b87e927bda8e915e38340cb7daa}{%
+           family={Metzer},
+           familyi={M\bibinitperiod},
+           given={Gal},
+           giveni={G\bibinitperiod}}}%
+        {{hash=89364e2db8972659a668cbdc092b95af}{%
+           family={Richardson},
+           familyi={R\bibinitperiod},
+           given={Elad},
+           giveni={E\bibinitperiod}}}%
+        {{hash=6a8a6c7970ab6d02e599d62882543861}{%
+           family={Patashnik},
+           familyi={P\bibinitperiod},
+           given={Or},
+           giveni={O\bibinitperiod}}}%
+        {{hash=d05a6442a67a9d44901f3a7688baed50}{%
+           family={Giryes},
+           familyi={G\bibinitperiod},
+           given={Raja},
+           giveni={R\bibinitperiod}}}%
+        {{hash=cdf44d78713bc27a81394749a9d8bbdc}{%
+           family={Cohen-Or},
+           familyi={C\bibinithyphendelim O\bibinitperiod},
+           given={Daniel},
+           giveni={D\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {arXiv}%
+      }
+      \strng{namehash}{61c6702d79abe79b4d634ae4efa3a557}
+      \strng{fullhash}{2fcbc038344249f41846847abaf5f102}
+      \strng{bibnamehash}{61c6702d79abe79b4d634ae4efa3a557}
+      \strng{authorbibnamehash}{61c6702d79abe79b4d634ae4efa3a557}
+      \strng{authornamehash}{61c6702d79abe79b4d634ae4efa3a557}
+      \strng{authorfullhash}{2fcbc038344249f41846847abaf5f102}
+      \field{sortinit}{M}
+      \field{sortinithash}{cfd219b90152c06204fab207bc6c7cab}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{abstract}{Text-guided image generation has progressed rapidly in recent years, inspiring major breakthroughs in text-guided shape generation. Recently, it has been shown that using score distillation, one can successfully text-guide a {NeRF} model to generate a 3D object. We adapt the score distillation to the publicly available, and computationally efficient, Latent Diffusion Models, which apply the entire diffusion process in a compact latent space of a pretrained autoencoder. As {NeRFs} operate in image space, a naive solution for guiding them with latent score distillation would require encoding to the latent space at each guidance step. Instead, we propose to bring the {NeRF} to the latent space, resulting in a Latent-{NeRF}. Analyzing our Latent-{NeRF}, we show that while Text-to-3D models can generate impressive results, they are inherently unconstrained and may lack the ability to guide or enforce a specific 3D structure. To assist and direct the 3D generation, we propose to guide our Latent-{NeRF} using a Sketch-Shape: an abstract geometry that defines the coarse structure of the desired object. Then, we present means to integrate such a constraint directly into a Latent-{NeRF}. This unique combination of text and shape guidance allows for increased control over the generation process. We also show that latent score distillation can be successfully applied directly on 3D meshes. This allows for generating high-quality textures on a given geometry. Our experiments validate the power of our different forms of guidance and the efficiency of using latent rendering. Implementation is available at https://github.com/eladrich/latent-nerf}
+      \field{day}{14}
+      \field{eprinttype}{arxiv}
+      \field{month}{11}
+      \field{number}{{arXiv}:2211.07600}
+      \field{title}{Latent-{NeRF} for Shape-Guided Generation of 3D Shapes and Textures}
+      \field{urlday}{9}
+      \field{urlmonth}{11}
+      \field{urlyear}{2024}
+      \field{year}{2022}
+      \field{dateera}{ce}
+      \field{urldateera}{ce}
+      \verb{eprint}
+      \verb 2211.07600
+      \endverb
+      \verb{file}
+      \verb Full Text PDF:/Users/fangjun/Zotero/storage/3MY5TLI5/Metzer et al. - 2022 - Latent-NeRF for Shape-Guided Generation of 3D Shap.pdf:application/pdf;Snapshot:/Users/fangjun/Zotero/storage/Z6ILBNS2/2211.html:text/html
+      \endverb
+      \verb{urlraw}
+      \verb http://arxiv.org/abs/2211.07600
+      \endverb
+      \verb{url}
+      \verb http://arxiv.org/abs/2211.07600
+      \endverb
+      \keyw{Computer Science - Computer Vision and Pattern Recognition,Computer Science - Graphics}
+    \endentry
     \entry{mildenhall_nerf_2020}{misc}{}
       \name{author}{6}{}{%
         {{hash=a3567364ab52973659adf74ee0c6e6f3}{%
