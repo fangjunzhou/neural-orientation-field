@@ -45,7 +45,7 @@
   \section{Method}
     \subsection{Data Pre-process}
 
-    Our model will be trained on images of human bust from multiple viewing angles. The preprocessing kernel will extract the projection of the hair growing direction onto the camera viewing plane. This can be done by a simple edge detection kernel such as Gabor filter used in related studies.
+    Our model will be trained on images of human bust from multiple viewing angles. The preprocessing kernel will extract the projection of the hair growing direction onto the camera viewing plane. This can be done by a simple edge detection kernel such as Gabor filter used in related studies. In this paper, we utilize the preprocessing pipeline in HairStep \cite{zheng_hairstep_2023} to segment out the hair from the image and get the direction vector of the top layer hair.
     
     \subsection{Backbone}
     
@@ -58,6 +58,8 @@
     For the second part, we project the weighted 3D direction vector obtained from the first part along the viewing direction onto the camera plane, resulting in the 2D direction vector observed by the camera. The final loss function is constructed by calculating the MSE loss between the 2D direction vector and the ground truth. We will use mini-batched gradient descent to optimize the loss function.
     
   \section{Experiment}
+
+  
 
   Given a set of images of human busts from multiple viewing angles, we will first use COLMAP, a general-purpose MVS pipeline that processes a set of images to generate a point cloud, as our baseline. Next, we will evaluate the quality enhancements provided by our model compared to both the Line-based PatchMatch MVS \cite{nam_strand-accurate_nodate} and generative models. Since the final output of our model differs from that of \cite{nam_strand-accurate_nodate} and the generative models, we will not compare their performances directly. Instead, we will evaluate performance relative to COLMAP. Finally, we will demonstrate the tunability of our model's output using Blender.
   
