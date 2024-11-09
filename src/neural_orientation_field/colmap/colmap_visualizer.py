@@ -207,6 +207,7 @@ def main():
             """Redraw the scene."""
             pl.clear()
             pl.show_axes()  # pyright: ignore
+            pl.show_grid()  # pyright: ignore
             draw_point_cloud(self.points, self.colors)
             if self.show_one_cam:
                 draw_cameras(
