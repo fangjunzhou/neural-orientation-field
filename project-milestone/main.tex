@@ -3,6 +3,7 @@
 \usepackage{fullpage}
 \usepackage{datetime}
 \usepackage{amsfonts}
+\usepackage{amsmath}
 
 \usepackage{graphicx}
 \usepackage{subcaption}
@@ -34,7 +35,7 @@
 
   Before machine learning model is used in this field, artists often hand crafted splines on skulls to represent hair strands. Each strand is then textured and rendered to mimic the hair volume. This workflow requires a lot of experience as it's non-trivial for artists to infer the final render result from hair stand splines. To reduce the workload and improve the accuracy of hair reconstruction, machine learning models are trained to generate hair strand from captured images.
 
-    In this work, we propose a new method capturing the hair structure by a 3D vector field from $\mathbb{R}^{3} \rightarrow \mathbb{R}^{3}$ representing the hair growing direction and occupancy. This mapping can be used later to generate hair stand directly by numerically solving the PDE. It can also be used as a latent variable to guide other generative models as mentioned in \cite{metzer_latent-nerf_2022}. We can fit this vector field by a simple MLP. We then project the vector field onto multiple camera view with a volumetric renderer. Since the screen space projection and volumetric rendering algorithm are differentiable, we are able to learn the vector field from images from multiple camera angle.
+  In this work, we propose a new method capturing the hair structure by a 3D orientation field from $\mathbb{R}^{3} \rightarrow \mathbb{R}^{2}$ representing the hair growing direction and occupancy. On top of that, another occupancy field from $\mathbb{R}^{3} \rightarrow \mathbb{R}^{3}$ is learned to indicate void, body, or hair occupancy. These mappings can be used later to generate hair stand directly by numerically solving the PDE. It can also be used as a latent variable to guide other generative models as mentioned in \cite{metzer_latent-nerf_2022}. We can fit this orientation field by a simple MLP. We then project the orientation field onto multiple camera view with a volumetric renderer. Since the screen space projection and volumetric rendering algorithm are differentiable, we are able to learn the orientation field from images from multiple camera angle.
 
   \section{Related Work}
 
@@ -46,9 +47,9 @@
 
   Our work is highly inspired by NeRF \cite{mildenhall_nerf_2020}, a model used for 3D reconstruction from 2D images. However, our model differs in two major way.
 
-  In NeRF, the model fits a radiance field from $\mathbb{R}^{5} \rightarrow \mathbb{R}^{4}$. The input of the randiance function includes the sample position and view direction. However, since the vector field our model fits is view-independent, the input space is only $\mathbb{R}^{5}$. This makes it easier for the model to capture more information from a smaller dataset.
+  In NeRF, the model fits a radiance field from $\mathbb{R}^{5} \rightarrow \mathbb{R}^{4}$. The input of the randiance function includes the sample position and view direction. However, since the orientation field our model fits is view-independent, the input space is only $\mathbb{R}^{5}$. This makes it easier for the model to capture more information from a smaller dataset.
 
-  On top of that, the volumetric renderer on vector field also differs from the one on radiance field. In this case, NeRF only integrate the sampled radiance for each ray, while our model need to project the sample vector onto the filming plane an then integrate the projected vector.
+  On top of that, the volumetric renderer on orientation field also differs from the one on radiance field. In this case, NeRF only integrate the sampled radiance for each ray, while our model need to project the sample orientation onto the filming plane an then integrate the projected orientation.
 
   \section{Method}
     \subsection{Data Preprocess}
@@ -59,38 +60,38 @@
     \begin{figure}[h]
         \centering
         % first col
-        \begin{subfigure}{0.2\textwidth}
+        \begin{subfigure}{0.3\textwidth}
             \centering
             \includegraphics[width=\textwidth]{project-milestone/images/portrait_raw/IMG_0342.png}
             \caption{raw}
         \end{subfigure}
         \hfill
-        \begin{subfigure}{0.2\textwidth}
+        \begin{subfigure}{0.3\textwidth}
             \centering
             \includegraphics[width=\textwidth]{project-milestone/images/portrait_raw/IMG_0346.png}
             \caption{raw}
         \end{subfigure}
         \hfill
-        \begin{subfigure}{0.2\textwidth}
+        \begin{subfigure}{0.3\textwidth}
             \centering
             \includegraphics[width=\textwidth]{project-milestone/images/portrait_raw/IMG_0349.png}
             \caption{raw}
         \end{subfigure}
         \vskip\baselineskip
         % second col
-        \begin{subfigure}{0.2\textwidth}
+        \begin{subfigure}{0.3\textwidth}
             \centering
             \includegraphics[width=\textwidth]{project-milestone/images/strand_map/IMG_0342.png}
             \caption{processed}
         \end{subfigure}
         \hfill
-        \begin{subfigure}{0.2\textwidth}
+        \begin{subfigure}{0.3\textwidth}
             \centering
             \includegraphics[width=\textwidth]{project-milestone/images/strand_map/IMG_0346.png}
             \caption{processed}
         \end{subfigure}
         \hfill
-        \begin{subfigure}{0.2\textwidth}
+        \begin{subfigure}{0.3\textwidth}
             \centering
             \includegraphics[width=\textwidth]{project-milestone/images/strand_map/IMG_0349.png}
             \caption{processed}
@@ -108,25 +109,121 @@
         \label{fig:colmap_demo}
     \end{figure}
 
-    \subsection{Training}
+    \subsection{Neural Orientation Field Model}
+    
+    The neural orientation field model we proposed consists of multiple MLP layers and residual connections. The input of the network is the spatial coordinates $(x, y, z)$ of the point to be sampled. The output is the normalized orientation of the hair $(\theta, \phi)$, as well as the opacity parameter $\sigma = (\sigma_{void}, \sigma_{hair}, \sigma{body})$. A softmax layer is used to make $\Vert \sigma \Vert_{2} = 1$.
 
-    Add nerf tuning here.
-    
-    \subsection{Backbone}
-    
-    The backbone network is similar to NeRF \cite{mildenhall_nerf_2020}'s backbone, primarily consisting of multiple MLP layers and residual connections. The difference is that the input to the network we constructed is the spatial coordinates $(x, y, z)$ of the point to be evaluated, and the output is the direction vector of the hair at that point $v = (v_x, v_y, v_z)$, as well as the opacity parameter $\sigma$. The direction vector is used to describe the growing direction of the hair at this point, while the opacity parameter sigma is used in loss construction to model the occlusion relationships of the hair which will be discussed later.
-    
-    \subsection{Loss Definition}
-    
-    The construction of the model's loss is divided into two parts: occlusion relationship modeling and plane projection of the direction vector. In occlusion relationship modeling, the weighted 3D direction vector is obtained by integrating the direction vectors along the observation direction ray, weighted by the opacity parameter $\sigma$ and an function describe the accumulative transmittance, similar to NeRF \cite{mildenhall_nerf_2020}. We can simulate the integration process through sampling specific points on the observation direction ray and discrete the original integral.
+    \subsection{Volumetric Rendering of a Neural Orientation Field}
 
-    For the second part, we project the weighted 3D direction vector obtained from the first part along the viewing direction onto the camera plane, resulting in the 2D direction vector observed by the camera. The final loss function is constructed by calculating the MSE loss between the 2D direction vector and the ground truth. We will use mini-batched gradient descent to optimize the loss function.
+    For each camera in the scene, we can emit camera rays for each pixel on the filming plane. Then, hair orientation and occupancy can be sampled along the camera ray. Given the camera view matrix $V \in \mathbb{R}_{4x4}$, the normalized orientation vector in homogeneous coordinate $\mathbf{o} \in \mathbb{R}^{4}$ can be projected to the view space by $\mathbf{o}_{view} = V\mathbf{o}$.
+
+    To project the orientation vectors onto screen space, we need to apply camera projection to the view space vectors. However, as we choose pinhole camera as our camera model, the projected vectors are independent of the camera parameters. In this cases, the screen space projection of the view space orientation is $\mathbf{o}_{screen}$
+
+    \begin{align}
+        P &= \begin{bmatrix}
+            1 & 0 & 0 & 0 \\
+            0 & 1 & 0 & 0 \\
+            0 & 0 & 0 & 0 \\
+            0 & 0 & 0 & 0
+        \end{bmatrix} \\
+        \mathbf{o}_{screen} &= P\mathbf{o}_{view}
+    \end{align}
+
+    Similar to the volumetric rendering function defined in NeRF \cite{mildenhall_nerf_2020}, our rendering function for screen space orientation can be written as
+
+    \begin{align}
+        O(\mathbf{r}) &= \int_{t_{n}}^{t_{f}} T(t) \sigma_{hair}(\mathbf{r}(t)) P V \mathbf{o}(\mathbf{r}(t), \mathbf{d}) dt \\
+        T(t) &= exp(-\int_{t_{n}}^{t_{f}} \sigma_{hair}(\mathbf{r}(s)) ds)
+    \end{align}
+
+    One important difference between our model and NeRF is we use two separate occupancy for body and hair, while in NeRF one occupancy is used to integrate camera rays. In our case, camera rays can be blocked by face and body that doesn't contribute to the final hair orientation field. These parts are marked red in the preprocessing step s demonstrated in Figure \ref{fig:image_prep}. When training the model, we integrate the 2D hair orientation using the aforementioned volumetric render function. We also run a traditional NeRF volumetric renderer to integrate the body occupancy to generate the body mask. The final loss is defined as the combination of two losses.
     
   \section{Experiment}
 
-  Given a set of images of human busts from multiple viewing angles, we first use COLMAP as our baseline. Next, we will evaluate the quality enhancements provided by our model compared to both the Line-based PatchMatch MVS \cite{nam_strand-accurate_nodate} and generative models. Since the final output of our model differs from that of \cite{nam_strand-accurate_nodate} and the generative models, we will not compare their performances directly. Instead, we will evaluate performance relative to COLMAP. Finally, we will demonstrate the tunability of our model's output using Blender.
+  \subsection{DataSet}
 
-  $\mathbf{Metrics:}$ Peak Signal-to-Noise Ratio (PSNR) is a metric from signal processing to evaluate similarity between images, often used in image reconstrction. PSNR is essentially a 2D MSE. Learned Perceptual Image Patch Similarity (LPIPS) is a metric measure how human may perceive the similarity of different images, it is robust to noise and focus on higher level features.
+  To investigate the convergence behavior of NeRF, we utilized synthetic images generated from Blender, specifically using a scene of Hoover Tower. For hair direction reconstruction, we compiled a dataset of 41 portraits, captured by ourselves, featuring one of our group members.
+
+  \subsection{Metrics}
+
+  The Peak Signal-to-Noise Ratio (PSNR) is a widely used metric in signal processing for assessing image similarity, particularly in image reconstruction tasks. It effectively represents the Mean Squared Error (MSE) between two images in a 2D context. Additionally, we employed the Learned Perceptual Image Patch Similarity (LPIPS) metric, which measures perceived similarity between images by focusing on high-level features that align closely with human visual perception. LPIPS is known for its robustness to noise and ability to capture perceptual differences.
+
+  \subsection{Baseline}
+
+  We attempted to train a NeRF model to represent hair structure as a radiance field, leveraging it to infer hair orientation. Since NeRF does not inherently encode orientation information, we relied on HairStep to predict orientation. Initial observations showed a slow convergence rate when training on highly detailed scenes, consistent with findings in the original NeRF paper, which noted that NeRF tends to capture low-frequency features early in training. See Figure \ref{fig:nerf_slow}.
+  \begin{figure}[h]
+      \centering
+      \begin{subfigure}{0.3\textwidth}
+            \centering
+            \includegraphics[width=\textwidth]{project-milestone/images/nerf_pred/nerf_800.png}
+            \caption{step 800}
+        \end{subfigure}
+        \hfill
+        \begin{subfigure}{0.3\textwidth}
+            \centering
+            \includegraphics[width=\textwidth]{project-milestone/images/nerf_pred/nerf_4000.png}
+            \caption{step 4000}
+        \end{subfigure}
+        \hfill
+        \begin{subfigure}{0.3\textwidth}
+            \centering
+            \includegraphics[width=\textwidth]{project-milestone/images/nerf_pred/nerf_10000.png}
+            \caption{step 10000}
+        \end{subfigure}
+        
+      \caption{slow convergence and overfit}
+      \label{fig:nerf_slow}
+  \end{figure}
+
+  We also observed signs of overfitting in NeRF, with the PSNR on the evaluation set stabilizing around 1000 batches. We aim to address this with regularization methods (WIP). Additionally, we hypothesize that the model may converge faster on a smaller dataset, given that the hair orientation field we aim to fit is view-independent and should not vary with camera position. As the outcome is evident, we opted not to measure PSNR for the NeRF baseline.
+
+
+  %% We tried to train a NeRF model to reconstruct hair structure as a radiance field, and use it to predict hair orientation.
+  %% NeRF doesn't include the latent orientation data. Therefore, we must still predict the orientation with HairStep.
+  %% We observed low convergence rate when trained on highly detailed scene. Cite original NeRF paper (NeRF tend to learn low frequency function in the early stage). (add figure show slow convergence)
+  %% We observed overfitting on NeRF. PSNR on the evaluation set stop increasing at around 1000 batches. (WIP) we'll try to solve this problem by regularization.
+  %% (WIP) We suspect our model will converge faster on smaller dataset: The orientation field we are trying to fit is view independent (the hair orientation we sampled from multiple direction does not vary based on the camera position).
+  %% No need to measure PSNR on the NeRF baseline, as the result is obvious.
+
+  Given a set of images of human busts from multiple viewing angles, we first use NeRF as our baseline. To see how well NeRF encodes hair direction, we run HairStep's preprocessing step on NeRF's output. From Figure \ref{fig:nerf_base} we see that HairStep failed to distinguish hair and thus incapable of holding relevant direction information. We noticed that NeRF's output is often blurred, this is because NeRF is biased towards lower resolution functions \cite{mildenhall_nerf_2020}.
+  \begin{figure}[h]
+        \centering
+        \begin{subfigure}{0.3\textwidth}
+            \centering
+            \includegraphics[width=\textwidth]{project-milestone/images/portrait_raw/IMG_0342.png}
+            \caption{raw}
+        \end{subfigure}
+        \quad
+        \begin{subfigure}{0.3\textwidth}
+            \centering
+            \includegraphics[width=\textwidth]{project-milestone/images/nerf_pred/31.png}
+            \caption{NeRF output}
+        \end{subfigure}
+
+        \vskip\baselineskip
+        \begin{subfigure}{0.3\textwidth}
+            \centering
+            \includegraphics[width=\textwidth]{project-milestone/images/strand_map/IMG_0342.png}
+            \caption{hair direction extraction ground truth}
+        \end{subfigure}
+        \quad
+        \begin{subfigure}{0.3\textwidth}
+            \centering
+            \includegraphics[width=\textwidth]{project-milestone/images/nerf_pred_strand/31.png}
+            \caption{hair direction extraction from NeRF output}
+        \end{subfigure}
+
+        \caption{Baseline Experiment}
+        \label{fig:nerf_base}
+  \end{figure}
+
+  \section{Contribution}
+
+  \subsection{Fangjun Zhou}
+
+  \subsection{Weiran Xu}
+
+  \subsection{Zhenyu Zhang}
   
   % Intended experiment
   
