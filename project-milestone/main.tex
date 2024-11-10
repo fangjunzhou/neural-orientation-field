@@ -3,6 +3,9 @@
 \usepackage{fullpage}
 \usepackage{datetime}
 
+\usepackage{graphicx}
+\usepackage{subcaption}
+
 \usepackage{biblatex}
 \addbibresource{./references.bib}
 
@@ -40,18 +43,75 @@
 
   NeRF \cite{mildenhall_nerf_2020} is a method used for 3D reconstruction from 2D images, utilizing neural networks to predict the color and density of points in 3D space. Our approach references the design of NeRF at various stages, transforming the color prediction task into a direction vector prediction task to achieve the goal of reconstructing hair flow directions.
 
-  In this study, we aim to develop a new method for hair reconstruction. The major goal of this model is to provide detailed growth vector for direct volumetric rendering or as a guidence for hair strand generation.
+  In this study, we aim to develop a new method for hair reconstruction. The major goal of this model is to provide detailed growth vector for direct volumetric rendering or as a guidance for hair strand generation.
 
   \section{Method}
-    \subsection{Data Pre-process}
+    \subsection{Data Preprocess}
+    
+    Our model will be trained on a set of images of human bust from multiple viewing angles.
 
-    Our model will be trained on images of human bust from multiple viewing angles. The preprocessing kernel will extract the projection of the hair growing direction onto the camera viewing plane. This can be done by a simple edge detection kernel such as Gabor filter used in related studies. In this paper, we utilize the preprocessing pipeline in HairStep \cite{zheng_hairstep_2023} to segment out the hair from the image and get the direction vector of the top layer hair.
+    $\mathbf{Image:}$  For each of the images, the preprocessing kernel will extract the projection of the hair growing direction onto the camera viewing plane. In this paper, we utilize the preprocessing pipeline in HairStep \cite{zheng_hairstep_2023} to segment out the hair from the image and get the direction vector field of the top layer hair. Each pixel in the preprocessed image has three channels rgb, we use r channel = 255 to denote the pixel belongs to the hair region, and the g and b channel together as the direction vector. For the region that does not belongs to hair but belongs to human body, its rgb = (127, 0, 0), and for other region we set rgb to $\mathbf{0}$.
+    \begin{figure}[h]
+        \centering
+        % first col
+        \begin{subfigure}{0.2\textwidth}
+            \centering
+            \includegraphics[width=\textwidth]{project-milestone/images/portrait_raw/IMG_0342.png}
+            \caption{raw}
+        \end{subfigure}
+        \hfill
+        \begin{subfigure}{0.2\textwidth}
+            \centering
+            \includegraphics[width=\textwidth]{project-milestone/images/portrait_raw/IMG_0346.png}
+            \caption{raw}
+        \end{subfigure}
+        \hfill
+        \begin{subfigure}{0.2\textwidth}
+            \centering
+            \includegraphics[width=\textwidth]{project-milestone/images/portrait_raw/IMG_0349.png}
+            \caption{raw}
+        \end{subfigure}
+        \vskip\baselineskip
+        % second col
+        \begin{subfigure}{0.2\textwidth}
+            \centering
+            \includegraphics[width=\textwidth]{project-milestone/images/strand_map/IMG_0342.png}
+            \caption{processed}
+        \end{subfigure}
+        \hfill
+        \begin{subfigure}{0.2\textwidth}
+            \centering
+            \includegraphics[width=\textwidth]{project-milestone/images/strand_map/IMG_0346.png}
+            \caption{processed}
+        \end{subfigure}
+        \hfill
+        \begin{subfigure}{0.2\textwidth}
+            \centering
+            \includegraphics[width=\textwidth]{project-milestone/images/strand_map/IMG_0349.png}
+            \caption{processed}
+        \end{subfigure}
+        
+        \caption{Image Preprocessing}
+        \label{fig:image_prep}
+    \end{figure}
+
+    $\mathbf{Camera:}$ For portrait taken in reality, we use COLMAP, a general-purpose MVS pipeline that processes a set of images to generate a point cloud, to reconstruct the camera position and angle. We also implemented a visualizer for COLMAP. In Figure \ref{fig:colmap_demo}, we see that COLMAP successfully reconstruct camera for the image.
+    \begin{figure}[h]
+        \centering
+        \includegraphics[width=0.5\linewidth]{project-milestone/images/colmap_demo.png}
+        \caption{Camera position reconstruction using COLMAP}
+        \label{fig:colmap_demo}
+    \end{figure}
+
+    \subsection{Training}
+
+    Add nerf tuning here.
     
     \subsection{Backbone}
     
     The backbone network is similar to NeRF \cite{mildenhall_nerf_2020}'s backbone, primarily consisting of multiple MLP layers and residual connections. The difference is that the input to the network we constructed is the spatial coordinates $(x, y, z)$ of the point to be evaluated, and the output is the direction vector of the hair at that point $v = (v_x, v_y, v_z)$, as well as the opacity parameter $\sigma$. The direction vector is used to describe the growing direction of the hair at this point, while the opacity parameter sigma is used in loss construction to model the occlusion relationships of the hair which will be discussed later.
     
-    \subsection{Loss Defination}
+    \subsection{Loss Definition}
     
     The construction of the model's loss is divided into two parts: occlusion relationship modeling and plane projection of the direction vector. In occlusion relationship modeling, the weighted 3D direction vector is obtained by integrating the direction vectors along the observation direction ray, weighted by the opacity parameter $\sigma$ and an function describe the accumulative transmittance, similar to NeRF \cite{mildenhall_nerf_2020}. We can simulate the integration process through sampling specific points on the observation direction ray and discrete the original integral.
 
@@ -59,7 +119,9 @@
     
   \section{Experiment}
 
-  Given a set of images of human busts from multiple viewing angles, we will first use COLMAP, a general-purpose MVS pipeline that processes a set of images to generate a point cloud, as our baseline. Next, we will evaluate the quality enhancements provided by our model compared to both the Line-based PatchMatch MVS \cite{nam_strand-accurate_nodate} and generative models. Since the final output of our model differs from that of \cite{nam_strand-accurate_nodate} and the generative models, we will not compare their performances directly. Instead, we will evaluate performance relative to COLMAP. Finally, we will demonstrate the tunability of our model's output using Blender.
+  Given a set of images of human busts from multiple viewing angles, we first use COLMAP as our baseline. Next, we will evaluate the quality enhancements provided by our model compared to both the Line-based PatchMatch MVS \cite{nam_strand-accurate_nodate} and generative models. Since the final output of our model differs from that of \cite{nam_strand-accurate_nodate} and the generative models, we will not compare their performances directly. Instead, we will evaluate performance relative to COLMAP. Finally, we will demonstrate the tunability of our model's output using Blender.
+
+  $\mathbf{Metrics:}$ Peak Signal-to-Noise Ratio (PSNR) is a metric from signal processing to evaluate similarity between images, often used in image reconstrction. PSNR is essentially a 2D MSE. Learned Perceptual Image Patch Similarity (LPIPS) is a metric measure how human may perceive the similarity of different images, it is robust to noise and focus on higher level features.
   
   % Intended experiment
   
