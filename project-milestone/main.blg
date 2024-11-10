@@ -1,20 +1,20 @@
 [0] Config.pm:302> INFO - This is Biber 2.10
 [0] Config.pm:305> INFO - Logfile is 'main.blg'
-[29] biber:313> INFO - === Sat Nov  9, 2024, 06:54:19
-[46] Biber.pm:371> INFO - Reading 'main.bcf'
-[88] Biber.pm:857> INFO - Found 8 citekeys in bib section 0
-[97] Biber.pm:3976> INFO - Processing section 0
-[105] Biber.pm:4136> INFO - Looking for bibtex format file './references.bib' for section 0
-[106] bibtex.pm:1444> INFO - Reading ascii input as UTF-8
-[108] bibtex.pm:1490> INFO - LaTeX decoding ...
-[134] bibtex.pm:1306> INFO - Found BibTeX data source './references.bib'
-[225] UCollate.pm:68> INFO - Overriding locale 'en-US' defaults 'normalization = NFD' with 'normalization = prenormalized'
-[225] UCollate.pm:68> INFO - Overriding locale 'en-US' defaults 'variable = shifted' with 'variable = non-ignorable'
-[225] Biber.pm:3804> INFO - Sorting list 'nty/global//global/global' of type 'entry' with template 'nty' and locale 'en-US'
-[225] Biber.pm:3810> INFO - No sort tailoring available for locale 'en-US'
-[234] bbl.pm:617> INFO - Writing 'main.bbl' with encoding 'ascii'
-[236] Utils.pm:193> WARN - The entry 'ma_single-view_nodate' has characters which cannot be encoded in 'ascii'. Recoding problematic characters into macros.
-[242] Utils.pm:193> WARN - The entry 'nam_strand-accurate_nodate' has characters which cannot be encoded in 'ascii'. Recoding problematic characters into macros.
-[250] Utils.pm:193> WARN - The entry 'wu_neuralhdhair_2022' has characters which cannot be encoded in 'ascii'. Recoding problematic characters into macros.
-[252] bbl.pm:720> INFO - Output to main.bbl
-[253] Biber.pm:110> INFO - WARNINGS: 3
+[23] biber:313> INFO - === Sat Nov  9, 2024, 22:06:07
+[35] Biber.pm:371> INFO - Reading 'main.bcf'
+[71] Biber.pm:857> INFO - Found 9 citekeys in bib section 0
+[78] Biber.pm:3976> INFO - Processing section 0
+[84] Biber.pm:4136> INFO - Looking for bibtex format file './references.bib' for section 0
+[84] bibtex.pm:1444> INFO - Reading ascii input as UTF-8
+[86] bibtex.pm:1490> INFO - LaTeX decoding ...
+[109] bibtex.pm:1306> INFO - Found BibTeX data source './references.bib'
+[193] UCollate.pm:68> INFO - Overriding locale 'en-US' defaults 'normalization = NFD' with 'normalization = prenormalized'
+[193] UCollate.pm:68> INFO - Overriding locale 'en-US' defaults 'variable = shifted' with 'variable = non-ignorable'
+[193] Biber.pm:3804> INFO - Sorting list 'nty/global//global/global' of type 'entry' with template 'nty' and locale 'en-US'
+[193] Biber.pm:3810> INFO - No sort tailoring available for locale 'en-US'
+[201] bbl.pm:617> INFO - Writing 'main.bbl' with encoding 'ascii'
+[203] Utils.pm:193> WARN - The entry 'ma_single-view_nodate' has characters which cannot be encoded in 'ascii'. Recoding problematic characters into macros.
+[206] Utils.pm:193> WARN - The entry 'nam_strand-accurate_nodate' has characters which cannot be encoded in 'ascii'. Recoding problematic characters into macros.
+[209] Utils.pm:193> WARN - The entry 'wu_neuralhdhair_2022' has characters which cannot be encoded in 'ascii'. Recoding problematic characters into macros.
+[210] bbl.pm:720> INFO - Output to main.bbl
+[211] Biber.pm:110> INFO - WARNINGS: 3

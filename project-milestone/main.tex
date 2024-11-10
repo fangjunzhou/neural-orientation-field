@@ -2,6 +2,7 @@
 
 \usepackage{fullpage}
 \usepackage{datetime}
+\usepackage{amsfonts}
 
 \usepackage{graphicx}
 \usepackage{subcaption}
@@ -13,7 +14,7 @@
   Learning Neural Orientation Field for Volumetric Hair Reconstruction \\
   {
     \small
-    Computer Vision Project Proposal
+    Project Milestone
   }
 }
 \author{
@@ -31,19 +32,23 @@
 
   Reconstructing human hair is one of the most challenging yet critical process in rendering photorealistic digital human. Unlike other parts of the human body, human hair is highly detailed and often intertwined together. Therefore, it's difficult to use traditional photogrammetry method to reconstruct its structure.
 
-  Before machine learning is used in this field, artists often hand crafted splines on skulls to represent hair strands. Each strand is then textured and rendered to mimic the hair volume. This workflow requires a lot of experience as it's non-trivial for artists to infer the final render result from hair stand splines. To reduce the workload and improve the accuracy of hair reconstruction, machine learning models are used to generate hair strand from captured photos.
+  Before machine learning model is used in this field, artists often hand crafted splines on skulls to represent hair strands. Each strand is then textured and rendered to mimic the hair volume. This workflow requires a lot of experience as it's non-trivial for artists to infer the final render result from hair stand splines. To reduce the workload and improve the accuracy of hair reconstruction, machine learning models are trained to generate hair strand from captured images.
+
+    In this work, we propose a new method capturing the hair structure by a 3D vector field from $\mathbb{R}^{3} \rightarrow \mathbb{R}^{3}$ representing the hair growing direction and occupancy. This mapping can be used later to generate hair stand directly by numerically solving the PDE. It can also be used as a latent variable to guide other generative models as mentioned in \cite{metzer_latent-nerf_2022}. We can fit this vector field by a simple MLP. We then project the vector field onto multiple camera view with a volumetric renderer. Since the screen space projection and volumetric rendering algorithm are differentiable, we are able to learn the vector field from images from multiple camera angle.
 
   \section{Related Work}
 
-  Previous attempt to achieve this goal mainly focus on learning based hair strand generation. This includes some studies about single view hair synthesis \cite{saito_3d_2018, zheng_hairstep_2023, wu_neuralhdhair_2022, ma_single-view_nodate}. Since the image only contains hair structure from one viewing angle, it's impossible to reconstruct entire hair accurately. These models often use pretrained image encoders such as ResNet-50 \cite{saito_3d_2018} to encode the abstract hair style into a feature vector, then use generative models such as U-Net \cite{zheng_hairstep_2023}, VAE \cite{saito_3d_2018}, and diffusion \cite{sklyarova_neural_2023}. These models also struggle with generating curly hair as there's only limited information about growing direction after feature extraction.
+  Previous attempt to achieve this goal mainly focus on learning based hair strand generation. This includes some studies about single view hair synthesis \cite{saito_3d_2018, zheng_hairstep_2023, wu_neuralhdhair_2022, ma_single-view_nodate}. Since the image only contains hair structure from one viewing angle, it's impossible to reconstruct entire hair accurately. These models often use pretrained image encoders such as ResNet-50 \cite{saito_3d_2018} to encode the abstract hair style into a feature vector, then use generative models such as U-Net \cite{zheng_hairstep_2023}, VAE \cite{saito_3d_2018}, and diffusion models \cite{sklyarova_neural_2023} to generate the final strand. These models also struggle with generating curly hair as there's only limited information about growing direction after feature extraction.
 
   In \cite{sklyarova_neural_2023} and \cite{rosu_neural_2022}, the authors also tried hair syntheses from multi-view images. However, these two studies still failed to capture finer detail.
 
   Another study about this topic tried to tackle this problem by expanding the traditional PatchMatch MVS (PMVS) algorithm to a Line-based PatchMatch MVS (LPMVS) \cite{nam_strand-accurate_nodate}. This method, despite its high accuracy, doesn't capture the volumetric property of human hair.
 
-  NeRF \cite{mildenhall_nerf_2020} is a method used for 3D reconstruction from 2D images, utilizing neural networks to predict the color and density of points in 3D space. Our approach references the design of NeRF at various stages, transforming the color prediction task into a direction vector prediction task to achieve the goal of reconstructing hair flow directions.
+  Our work is highly inspired by NeRF \cite{mildenhall_nerf_2020}, a model used for 3D reconstruction from 2D images. However, our model differs in two major way.
 
-  In this study, we aim to develop a new method for hair reconstruction. The major goal of this model is to provide detailed growth vector for direct volumetric rendering or as a guidance for hair strand generation.
+  In NeRF, the model fits a radiance field from $\mathbb{R}^{5} \rightarrow \mathbb{R}^{4}$. The input of the randiance function includes the sample position and view direction. However, since the vector field our model fits is view-independent, the input space is only $\mathbb{R}^{5}$. This makes it easier for the model to capture more information from a smaller dataset.
+
+  On top of that, the volumetric renderer on vector field also differs from the one on radiance field. In this case, NeRF only integrate the sampled radiance for each ray, while our model need to project the sample vector onto the filming plane an then integrate the projected vector.
 
   \section{Method}
     \subsection{Data Preprocess}
