@@ -101,7 +101,7 @@
         \label{fig:image_prep}
     \end{figure}
 
-    $\mathbf{Camera:}$ For portrait taken in reality, we use COLMAP, a general-purpose MVS pipeline that processes a set of images to generate a point cloud, to reconstruct the camera position and angle. We also implemented a visualizer for COLMAP. In Figure \ref{fig:colmap_demo}, we see that COLMAP successfully reconstruct camera for the image.
+    $\mathbf{Camera:}$ For portrait taken in reality, we use COLMAP, a general-purpose MVS pipeline that processes a set of images to generate a point cloud, to reconstruct the camera position and angle. We also implemented a visualizer for COLMAP for debug purposes. In Figure \ref{fig:colmap_demo}, we see that COLMAP successfully reconstruct camera for the image.
     \begin{figure}[h]
         \centering
         \includegraphics[width=0.5\linewidth]{project-milestone/images/colmap_demo.png}
@@ -146,11 +146,11 @@
 
   \subsection{Metrics}
 
-  The Peak Signal-to-Noise Ratio (PSNR) is a widely used metric in signal processing for assessing image similarity, particularly in image reconstruction tasks. It effectively represents the Mean Squared Error (MSE) between two images in a 2D context. Additionally, we employed the Learned Perceptual Image Patch Similarity (LPIPS) metric, which measures perceived similarity between images by focusing on high-level features that align closely with human visual perception. LPIPS is known for its robustness to noise and ability to capture perceptual differences.
+  The Peak Signal-to-Noise Ratio (PSNR) is a widely used metric in signal processing for assessing image similarity, particularly in image reconstruction tasks. It effectively represents the Mean Squared Error (MSE) between two images in a 2D context.
 
   \subsection{Baseline}
 
-  We attempted to train a NeRF model to represent hair structure as a radiance field, leveraging it to infer hair orientation. Since NeRF does not inherently encode orientation information, we relied on HairStep to predict orientation. Initial observations showed a slow convergence rate when training on highly detailed scenes, consistent with findings in the original NeRF paper, which noted that NeRF tends to capture low-frequency features early in training. See Figure \ref{fig:nerf_slow}.
+  We attempted to train a NeRF model to represent hair structure as a radiance field, leveraging it to infer hair orientation. Since NeRF does not inherently encode orientation information, we relied on HairStep to predict orientation. Initial observations showed a slow convergence rate when training on highly detailed scenes, consistent with findings in the original NeRF paper \cite{mildenhall_nerf_2020}, which noted that NeRF tends to capture low-frequency features early in training, see Figure \ref{fig:nerf_slow}. Another consequence of this is that the output of NeRF is often blurred, making HairStep difficult to segment out hair and output reasonable hair direction, thus incapable of holding relevant direction information, see Figure \ref{fig:nerf_base}.
   \begin{figure}[h]
       \centering
       \begin{subfigure}{0.3\textwidth}
@@ -171,12 +171,11 @@
             \caption{step 10000}
         \end{subfigure}
         
-      \caption{slow convergence and overfit}
+      \caption{NeRF's output on evaluation set, shows slow convergence and high variance}
       \label{fig:nerf_slow}
   \end{figure}
 
   We also observed signs of overfitting in NeRF, with the PSNR on the evaluation set stabilizing around 1000 batches. We aim to address this with regularization methods (WIP). Additionally, we hypothesize that the model may converge faster on a smaller dataset, given that the hair orientation field we aim to fit is view-independent and should not vary with camera position. As the outcome is evident, we opted not to measure PSNR for the NeRF baseline.
-
 
   %% We tried to train a NeRF model to reconstruct hair structure as a radiance field, and use it to predict hair orientation.
   %% NeRF doesn't include the latent orientation data. Therefore, we must still predict the orientation with HairStep.
@@ -185,7 +184,6 @@
   %% (WIP) We suspect our model will converge faster on smaller dataset: The orientation field we are trying to fit is view independent (the hair orientation we sampled from multiple direction does not vary based on the camera position).
   %% No need to measure PSNR on the NeRF baseline, as the result is obvious.
 
-  Given a set of images of human busts from multiple viewing angles, we first use NeRF as our baseline. To see how well NeRF encodes hair direction, we run HairStep's preprocessing step on NeRF's output. From Figure \ref{fig:nerf_base} we see that HairStep failed to distinguish hair and thus incapable of holding relevant direction information. We noticed that NeRF's output is often blurred, this is because NeRF is biased towards lower resolution functions \cite{mildenhall_nerf_2020}.
   \begin{figure}[h]
         \centering
         \begin{subfigure}{0.3\textwidth}
@@ -221,12 +219,20 @@
 
   \subsection{Fangjun Zhou}
 
+  Wrote preprocessing script that uses COLMAP to extract features and camera poses. Wrote colmap\_visualizer using imagui and pyvista to help visualize the extracted point cloud / camera position. Wrote helper methods to construct camera rays for NeRF training. Rendered hoover tower dataset in Blender. Implement and trained NeRF baseline. Derive orientation vector projection volumetric render function. Wrote method section in the milestone report.
+
   \subsection{Weiran Xu}
+  
+  Contributed to building the human portrait dataset and applied HairStep for image preprocessing and hair strand direction extraction, preparing the data for analysis. Also wrote part of experiment section in the milestone report, detailing methodology and preliminary findings.
 
   \subsection{Zhenyu Zhang}
   
-  % Intended experiment
+  Responsible for refactoring Tiny NeRF, do the training and test related to Tiny NeRF, and implementing the code for 3D vector field reconstruction of hair growth. This included model code, loss computation code, camera view transformation and coordinate system conversion code, as well as the code of calculations for remapping 3D vectors in space to the camera frame.
   
+  % Intended experiment
+  \section{Work in Progress}
+
+  We've finish implementing our proposed model but haven't start the experiment. We're also planning to add more baselines to compare with. On top of that, the current model is slow to converge. We're planning to implement hierarchical volume sampling mentioned in the original NeRF paper to speed up convergence.
 
   \printbibliography
 
