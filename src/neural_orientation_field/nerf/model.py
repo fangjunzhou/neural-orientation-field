@@ -8,7 +8,7 @@ class NerfModel(nn.Module):
 
         def init_weights(m):
             if isinstance(m, nn.Linear):
-                nn.init.kaiming_uniform_(m.weight)
+                nn.init.kaiming_normal_(m.weight)
                 if m.bias is not None:
                     nn.init.zeros_(m.bias)
         # Input layer (default: 42 -> 128)
