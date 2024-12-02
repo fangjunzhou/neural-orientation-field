@@ -1,15 +1,9 @@
-import json
 import pathlib
 import argparse
 import logging
 import sys
 
-import numpy as np
-
 import pycolmap
-import pyvista as pv
-
-import neural_orientation_field.utils as utils
 
 
 def main():
@@ -21,40 +15,44 @@ def main():
         """
     )
     parser.add_argument(
-        "-p",
-        "--path",
-        default=pathlib.Path("./nof-config.json"),
+        "-i",
+        "--input",
+        default=pathlib.Path("./data/images/"),
         help="""
-        The project config json file path. The default path is 
-        ./nof-config.json
+        Input images directory.
+        """,
+        type=pathlib.Path
+    )
+    parser.add_argument(
+        "-o",
+        "--output",
+        default=pathlib.Path("./data/output/colmap/"),
+        help="""
+        Output model directory.
         """,
         type=pathlib.Path
     )
     # ------------------- Read Project Config  ------------------- #
     args = parser.parse_args()
-    config_path: pathlib.Path = args.path
-    if not config_path.exists():
-        logging.error("The project config doesn't exist.")
+    input_path: pathlib.Path = args.input
+    if not input_path.exists():
+        logging.error("The input image directory doesn't exist.")
         sys.exit(1)
-    with open(config_path, "r") as config_file:
-        try:
-            config_dict = json.load(config_file)
-            project_config = utils.ProjectConfig.from_dict(config_dict)
-        except Exception as e:
-            logging.error("Failed to load project config.", stack_info=True)
-            sys.exit(1)
+    output_path: pathlib.Path = args.output
+    if not output_path.exists():
+        output_path.mkdir(parents=True)
     # --------------------- COLMAP Pipeline  --------------------- #
     # Data path.
-    image_dir = project_config.input_path
-    db_path = project_config.cache_path / "colmap-db.db"
-    output_dir = project_config.cache_path / "colmap"
+    image_dir = input_path
+    db_path = output_path / "colmap-db.db"
+    output_dir = output_path / "model"
     if not output_dir.exists():
         output_dir.mkdir(parents=True)
     # COLMAP pipeline.
     pycolmap.extract_features(
-        db_path, image_dir, camera_mode=pycolmap.CameraMode.SINGLE, camera_model="SIMPLE_PINHOLE")
+        db_path, input_path, camera_mode=pycolmap.CameraMode.SINGLE, camera_model="SIMPLE_PINHOLE")
     pycolmap.match_exhaustive(db_path)
-    maps = pycolmap.incremental_mapping(db_path, image_dir, output_dir)
+    maps = pycolmap.incremental_mapping(db_path, input_path, output_dir)
 
 
 if __name__ == "__main__":

@@ -33,42 +33,34 @@ def main():
         """
     )
     parser.add_argument(
-        "-p",
-        "--path",
-        default=pathlib.Path("./nof-config.json"),
+        "-i",
+        "--images",
+        default=pathlib.Path("./data/images/"),
         help="""
-        The project config json file path. The default path is 
-        ./nof-config.json
+        Input images directory.
         """,
         type=pathlib.Path
     )
     parser.add_argument(
         "-m",
         "--model",
-        default=pathlib.Path("./data/cache/colmap/0/"),
+        default=pathlib.Path("./data/output/colmap/model/0/"),
         help="""
         The COLMAP model path. Should be a directory containing cameras.bin, 
-        images.bin, and points3D.bin. The default path is ./data/cache/colmap/0/
+        images.bin, and points3D.bin. The default path is ./data/output/colmap/model/0/
         """,
         type=pathlib.Path
     )
     # --------------------- Parse Arguments  --------------------- #
     args = parser.parse_args()
-    config_path: pathlib.Path = args.path
+    image_path: pathlib.Path = args.images
+    if not image_path.exists():
+        logging.error("The project config doesn't exist.")
+        sys.exit(1)
     model_path: pathlib.Path = args.model
     if not model_path.exists():
         logging.error("The COLMAP model directory doesn't exist.")
         sys.exit(1)
-    if not config_path.exists():
-        logging.error("The project config doesn't exist.")
-        sys.exit(1)
-    with open(config_path, "r") as config_file:
-        try:
-            config_dict = json.load(config_file)
-            project_config = utils.ProjectConfig.from_dict(config_dict)
-        except Exception as e:
-            logging.error("Failed to load project config.", stack_info=True)
-            sys.exit(1)
     # -------------------- COLMAP Extraction  -------------------- #
     try:
         model = pycolmap.Reconstruction(model_path)
@@ -227,7 +219,7 @@ def main():
         def load_cam_image(self):
             """Load image as np.ndarray"""
             image_file_name: str = image_file_names[self.cam_id]
-            image_file_path = project_config.input_path / image_file_name
+            image_file_path = image_path / image_file_name
             self.cam_image = np.array(Image.open(image_file_path))
 
         def plot_point_cloud(self):
