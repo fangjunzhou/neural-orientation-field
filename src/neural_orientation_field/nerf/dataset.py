@@ -29,7 +29,7 @@ class NeRFImageDataset(Dataset):
     def __getitem__(self, idx):
         # Convert image to (h, w, 3) np.ndarray.
         image = Image.open(self.image_path / self.image_file_names[idx])
-        image = np.array(image)
+        image = np.array(image) / 255
         h, w, _ = image.shape
         # Camera parameters.
         f, cx, cy = self.cam_params[idx]
@@ -41,13 +41,15 @@ class NeRFImageDataset(Dataset):
         # Calculate camera ray.
         pixel_coord = np.moveaxis(
             np.mgrid[0:h, 0:w], 0, -1) - np.array([cx, cy])
-        cam_ray_view = np.append(pixel_coord, f * np.ones((h, w, 1)), axis=2)
+        cam_ray_view = np.append(pixel_coord, -f * np.ones((h, w, 1)), axis=2)
         cam_ray_view_homo = np.append(
             cam_ray_view, np.zeros((h, w, 1)), axis=2)
         cam_ray_world: np.ndarray = np.matmul(
             cam_transform_inv[np.newaxis, np.newaxis, :, :],
             cam_ray_view_homo[:, :, :, np.newaxis]
         ).reshape((h, w, -1))[:, :, :3]
+        cam_ray_world = cam_ray_world / \
+            np.linalg.norm(cam_ray_world, axis=-1)[:, :, np.newaxis]
         return image, f, cam_transform, cam_transform_inv, cam_orig, cam_ray_world
 
 
