@@ -48,7 +48,7 @@ def get_camera_poses(model: pycolmap.Reconstruction):
     # Extract camera view.
     cam_transforms = np.zeros((num_images, 4, 4))
     cam_params = np.zeros((num_images, 3))
-    image_file_names = []
+    image_file_names: list[str] = []
 
     for i, image in enumerate(images):
         # Get camera pose.
