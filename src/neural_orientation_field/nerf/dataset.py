@@ -8,6 +8,7 @@ from PIL import Image
 from tqdm import tqdm
 
 import neural_orientation_field.colmap.colmap_utils as colutils
+from neural_orientation_field.nerf.utils import cam_ray_from_pose
 
 
 class NeRFImageDataset(Dataset):
@@ -33,34 +34,20 @@ class NeRFImageDataset(Dataset):
         h, w, _ = image.shape
         # Camera parameters.
         f, cx, cy = self.cam_params[idx]
-        # Camera pose.
         cam_transform = self.cam_transforms[idx]
-        cam_transform_inv = np.linalg.inv(cam_transform)
-        # Calculate camera origins
-        cam_orig = np.matmul(cam_transform_inv, np.array([0, 0, 0, 1]))[:3]
-        # Calculate camera ray.
-        pixel_coord = np.moveaxis(
-            np.mgrid[0:h, 0:w], 0, -1) - np.array([cx, cy])
-        cam_ray_view = np.append(pixel_coord, -f * np.ones((h, w, 1)), axis=2)
-        cam_ray_view_homo = np.append(
-            cam_ray_view, np.zeros((h, w, 1)), axis=2)
-        cam_ray_world: np.ndarray = np.matmul(
-            cam_transform_inv[np.newaxis, np.newaxis, :, :],
-            cam_ray_view_homo[:, :, :, np.newaxis]
-        ).reshape((h, w, -1))[:, :, :3]
-        cam_ray_world = cam_ray_world / \
-            np.linalg.norm(cam_ray_world, axis=-1)[:, :, np.newaxis]
-        return image, f, cam_transform, cam_transform_inv, cam_orig, cam_ray_world
+        return image, cam_transform, (h, w), (f, cx, cy)
 
 
 class NeRFRayDataset(Dataset):
-    def __init__(self, image_dataset: NeRFImageDataset, tqdm: Optional[tqdm] = None):
+    def __init__(self, image_dataset: Dataset, tqdm: Optional[tqdm] = None):
         self.pixels = []
         self.cam_origs = []
         self.cam_ray_worlds = []
         self.prefix_idx = []
         self.size = 0
-        for image, _, _, _, cam_orig, cam_ray_world in image_dataset:
+        for image, cam_transform, (h, w), (f, cx, cy) in image_dataset:
+            cam_orig, cam_ray_world = cam_ray_from_pose(
+                cam_transform, h, w, f, cx, cy)
             if image.shape != cam_ray_world.shape:
                 raise ValueError("image and cam_ray_world shape not match.")
             num_pixels = image.shape[0] * image.shape[1]

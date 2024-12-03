@@ -1,6 +1,7 @@
 import torch
+import numpy as np
 
-from neural_orientation_field.nerf.model import NeRFModel
+from neural_orientation_field.nerf.model import NeRFModel, NeRfCoarseModel, NeRfFineModel
 
 
 def pos_encode(x: torch.Tensor, num_encoding_functions: int = 6, device: torch.device = torch.device("cpu")):
@@ -19,6 +20,57 @@ def pos_encode(x: torch.Tensor, num_encoding_functions: int = 6, device: torch.d
         x[:, torch.newaxis, :]
     x = torch.concat((torch.sin(x), torch.cos(x)), 1)
     return x
+
+
+def nerf_image_render(
+        coarse_model: NeRfCoarseModel,
+        fine_model: NeRfFineModel,
+        cam_orig: torch.Tensor,
+        cam_ray: torch.Tensor,
+        ray_batch_size: int,
+        nc: float,
+        fc: float,
+        samples_per_ray: int,
+        max_subd_samples: int,
+        coarse_pos_encode: int,
+        fine_pos_encode: int,
+        device: torch.device = torch.device("cpu")
+):
+    h, w, _ = cam_ray.shape
+    cam_orig = torch.from_numpy(
+        cam_orig).type(torch.float32).to(device)
+    cam_orig = cam_orig.view(1, 1, -1)
+    cam_orig = cam_orig.expand(cam_ray.shape)
+    cam_ray = torch.from_numpy(
+        cam_ray).type(torch.float32).to(device)
+    cam_orig = cam_orig.reshape(-1, 3)
+    cam_ray = cam_ray.reshape(-1, 3)
+    num_pixels = cam_orig.shape[0]
+    color_pred = torch.zeros((num_pixels, 3))
+    for i in range(0, num_pixels, ray_batch_size):
+        _, occupancy, sample_depth = static_volumetric_renderer(
+            coarse_model,
+            cam_orig[i:i+ray_batch_size],
+            cam_ray[i:i+ray_batch_size],
+            nc,
+            fc,
+            num_sample=samples_per_ray,
+            num_pos_encode=coarse_pos_encode,
+            device=device
+        )
+        color_batch, _, _ = adaptive_volumetric_renderer(
+            fine_model,
+            cam_orig[i:i+ray_batch_size],
+            cam_ray[i:i+ray_batch_size],
+            occupancy,
+            sample_depth,
+            max_subd_sample=max_subd_samples,
+            num_pos_encode=fine_pos_encode,
+            device=device
+        )
+        color_pred[i:i+ray_batch_size] = color_batch.detach()
+    image_pred = color_pred.reshape((h, w, -1))
+    return image_pred
 
 
 def static_volumetric_renderer(
@@ -121,7 +173,7 @@ def adaptive_sample_depth(
     batch_size, _ = sample_depths.shape
     # Get the occupancy rank.
     _, occupancy_rank = torch.sort(occupancy[:, :-1], dim=-1, descending=True)
-    for i in range(max_subd_sample):
+    for i in range(min(max_subd_sample, occupancy_rank.shape[1])):
         depth_idx = occupancy_rank[:, i]
         subd = max_subd_sample - i
         depth_start = sample_depths[torch.arange(
@@ -173,3 +225,37 @@ def sample_radiance(
     radiance = model(nerf_input)
     radiance = radiance.reshape(batch_size, num_sample, -1)
     return radiance
+
+
+def cam_ray_from_pose(cam_transform: np.ndarray, h: int, w: int, f: float, cx: float, cy: float):
+    """Get camera orgin and camera ray from its pose.
+
+    Args:
+        cam_transform: World to view coordinate transform.
+        h: image height.
+        w: image width.
+        f: focal length.
+        cx: focal point x.
+        cy: focal point y.
+
+    Returns:
+        camera origins and camera rays.
+    """
+    # Camera pose.
+    cam_transform_inv = np.linalg.inv(cam_transform)
+    # Calculate camera origins
+    cam_orig = np.matmul(cam_transform_inv, np.array([0, 0, 0, 1]))[:3]
+    # Calculate camera ray.
+    pixel_coord = np.moveaxis(
+        np.mgrid[0:h, 0:w], 0, -1) - np.array([cx, cy])
+    cam_ray_view = np.append(pixel_coord, -f * np.ones((h, w, 1)), axis=2)
+    cam_ray_view_homo = np.append(
+        cam_ray_view, np.zeros((h, w, 1)), axis=2)
+    cam_ray_world: np.ndarray = np.matmul(
+        cam_transform_inv[np.newaxis, np.newaxis, :, :],
+        cam_ray_view_homo[:, :, :, np.newaxis]
+    ).reshape((h, w, -1))[:, :, :3]
+    cam_ray_world = cam_ray_world / \
+        np.linalg.norm(cam_ray_world, axis=-1)[:, :, np.newaxis]
+
+    return cam_orig, cam_ray_world

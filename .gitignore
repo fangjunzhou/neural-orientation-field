@@ -7,4 +7,4 @@ COLMAP_Visualizer.ini
 notebooks/.ipynb_checkpoints
 .ipynb_checkpoints/
 tiny_nerf_data.npz
-notebooks/runs
+runs/

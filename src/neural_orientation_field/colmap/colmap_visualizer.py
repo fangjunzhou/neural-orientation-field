@@ -21,10 +21,9 @@ import neural_orientation_field.utils as utils
 import neural_orientation_field.imgui_utils as imgui_utils
 import neural_orientation_field.colmap.colmap_utils as colutils
 
-logging.basicConfig(level=logging.DEBUG)
-
 
 def main():
+    logging.basicConfig(level=logging.DEBUG)
     # ---------------------- Argument Setup ---------------------- #
     parser = argparse.ArgumentParser(
         prog="COLMAP Visualizer",
