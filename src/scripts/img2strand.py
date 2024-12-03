@@ -19,8 +19,12 @@ def img2strand(opt):
 
     items = os.listdir(resized_path)
 
-    model = Model().cuda()
-    model.load_state_dict(torch.load(opt.checkpoint_img2strand))
+    # model = Model().cuda()
+    model = Model()
+    device = torch.device("cpu")
+    model = model.to(device)
+    # model.load_state_dict(torch.load(opt.checkpoint_img2strand))
+    model.load_state_dict(torch.load(opt.checkpoint_img2strand, map_location=torch.device('cpu')))
 
     model.eval()
 
@@ -31,7 +35,7 @@ def img2strand(opt):
 
         rgb_img = rgb_img*mask
 
-        rgb_img = Variable(torch.from_numpy(rgb_img).permute(2, 0, 1).float().unsqueeze(0)).cuda()
+        rgb_img = Variable(torch.from_numpy(rgb_img).permute(2, 0, 1).float().unsqueeze(0)).to(device)
 
         strand_pred = model(rgb_img)
         strand_pred = np.clip(strand_pred.permute(0, 2, 3, 1)[0].cpu().detach().numpy(), 0., 1.)  # 512 * 512 *60
