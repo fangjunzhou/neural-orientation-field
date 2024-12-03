@@ -25,8 +25,8 @@ def pos_encode(x: torch.Tensor, num_encoding_functions: int = 6, device: torch.d
 def nerf_image_render(
         coarse_model: NeRfCoarseModel,
         fine_model: NeRfFineModel,
-        cam_orig: torch.Tensor,
-        cam_ray: torch.Tensor,
+        cam_orig_np: np.ndarray,
+        cam_ray_np: np.ndarray,
         ray_batch_size: int,
         nc: float,
         fc: float,
@@ -36,13 +36,11 @@ def nerf_image_render(
         fine_pos_encode: int,
         device: torch.device = torch.device("cpu")
 ):
-    h, w, _ = cam_ray.shape
-    cam_orig = torch.from_numpy(
-        cam_orig).type(torch.float32).to(device)
+    h, w, _ = cam_ray_np.shape
+    cam_orig = torch.from_numpy(cam_orig_np).type(torch.float32).to(device)
     cam_orig = cam_orig.view(1, 1, -1)
-    cam_orig = cam_orig.expand(cam_ray.shape)
-    cam_ray = torch.from_numpy(
-        cam_ray).type(torch.float32).to(device)
+    cam_orig = cam_orig.expand(cam_ray_np.shape)
+    cam_ray = torch.from_numpy(cam_ray_np).type(torch.float32).to(device)
     cam_orig = cam_orig.reshape(-1, 3)
     cam_ray = cam_ray.reshape(-1, 3)
     num_pixels = cam_orig.shape[0]
