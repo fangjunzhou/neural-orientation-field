@@ -1,0 +1,4 @@
+https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth
+download the SAM checkpoint from the above link and put it to ./checkpoints/SAM-models/
+put image to ./results/img/
+to run: ```python -m scripts.img2hairstep --device cpu```
