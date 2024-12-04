@@ -11,7 +11,7 @@ import neural_orientation_field.colmap.colmap_utils as colutils
 from neural_orientation_field.nerf.utils import cam_ray_from_pose
 
 
-class NeRFImageDataset(Dataset):
+class NeRFColmapImageDataset(Dataset):
     def __init__(self, image_path: pathlib.Path, model_path: pathlib.Path):
         self.image_path = image_path
         # Load COLMAP reconstruction.
@@ -38,7 +38,7 @@ class NeRFImageDataset(Dataset):
         return image, cam_transform, (h, w), (f, cx, cy)
 
 
-class NeRFPriorImageDataset(Dataset):
+class NeRFImageDataset(Dataset):
     def __init__(self, frame_paths: list[pathlib.Path], param: np.ndarray, trans: np.ndarray):
         self.frame_paths = frame_paths
         f, cx, cy = param

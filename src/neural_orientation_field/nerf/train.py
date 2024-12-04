@@ -9,7 +9,7 @@ import torch
 from torch.utils.data import DataLoader, RandomSampler, random_split
 from torch.utils.tensorboard.writer import SummaryWriter
 
-from neural_orientation_field.nerf.dataset import NeRFPriorImageDataset, NeRFRayDataset
+from neural_orientation_field.nerf.dataset import NeRFImageDataset, NeRFRayDataset
 from neural_orientation_field.nerf.model import NeRfCoarseModel, NeRfFineModel
 from neural_orientation_field.nerf.utils import cam_ray_from_pose, nerf_image_render,  static_volumetric_renderer, adaptive_volumetric_renderer
 from neural_orientation_field.nerf.training_config import NeRFTrainingConfig
@@ -100,7 +100,7 @@ def main():
         cam_params = np.load(cam_param_file)
 
     # Load image dataset.
-    image_dataset = NeRFPriorImageDataset(
+    image_dataset = NeRFImageDataset(
         frame_paths, cam_params, cam_transforms)
     num_train = len(image_dataset) - config.num_valid_image
     num_valid = config.num_valid_image
