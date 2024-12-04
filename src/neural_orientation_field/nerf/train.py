@@ -130,7 +130,7 @@ def main():
     fine_model.train()
 
     train_sampler = RandomSampler(
-        data_source=ray_dataset_train, num_samples=len(ray_dataset_train))
+        data_source=ray_dataset_train, num_samples=int(len(ray_dataset_train)))
     dataloader = DataLoader(
         ray_dataset_train,
         sampler=train_sampler,
