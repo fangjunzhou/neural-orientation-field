@@ -8,19 +8,22 @@ from mathutils import Vector
 random.seed(42)
 
 # Define the center of the scene
-scene_center = Vector((0, 0, 15))
+scene_center = Vector((0, 0, 0))
 
 # Define the radius of the sphere on which the camera will be placed
-radius = 10
+radius = 5
 
 cam_transforms = []
 frame_paths = []
 
 # Function to position and orient the camera
+
+
 def position_camera_randomly(frame_number):
     # Generate random spherical coordinates
     theta = random.uniform(0, 2 * math.pi)  # Random angle in radians
-    phi = random.uniform(0.1 * math.pi, 0.5 * math.pi)        # Random angle in radians
+    # Random angle in radians
+    phi = random.uniform(0.1 * math.pi, 0.5 * math.pi)
 
     # Convert spherical coordinates to Cartesian coordinates
     x = radius * math.sin(phi) * math.cos(theta)
@@ -36,11 +39,15 @@ def position_camera_randomly(frame_number):
     bpy.context.scene.camera.rotation_euler = rot_quat.to_euler()
 
     # Insert keyframes for location and rotation
-    bpy.context.scene.camera.keyframe_insert(data_path='location', frame=frame_number)
-    bpy.context.scene.camera.keyframe_insert(data_path='rotation_euler', frame=frame_number)
-    
+    bpy.context.scene.camera.keyframe_insert(
+        data_path='location', frame=frame_number)
+    bpy.context.scene.camera.keyframe_insert(
+        data_path='rotation_euler', frame=frame_number)
+
+    bpy.context.scene.frame_set(frame_number)
     cam_transforms.append(np.matrix(bpy.context.scene.camera.matrix_world))
     frame_paths.append(bpy.context.scene.render.frame_path(frame=frame_number))
+
 
 # Set the total number of frames
 total_frames = 128
@@ -52,17 +59,20 @@ h = bpy.data.scenes["hairstyles main"].render.resolution_y
 w = bpy.data.scenes["hairstyles main"].render.resolution_x
 cx = w/2
 cy = h/2
-f = bpy.data.cameras["Camera"].lens / bpy.data.cameras["Camera"].sensor_width * w
+f = bpy.data.cameras["Camera"].lens / \
+    bpy.data.cameras["Camera"].sensor_width * w
 with open(directory + "/camera-params.npy", "wb") as cam_param_file:
-    np.save(cam_param_file, (h, w, f, cx, cy))
+    np.save(cam_param_file, (f, cx, cy))
 
 # Position the camera randomly for each frame
 for frame in range(1, total_frames + 1):
     position_camera_randomly(frame)
-    
+
 cam_transforms = np.array(cam_transforms)
 with open(directory + "/camera-transforms.npy", "wb") as cam_trans_file:
     np.save(cam_trans_file, cam_transforms)
 
-with open(directory + "/frame-paths.txt", "w") as frame_file:
-    frame_file.writelines(frame_paths)
+with open(directory + "/frame-names.txt", "w") as frame_file:
+    for frame_path in frame_paths[:-1]:
+        frame_file.writelines(frame_path.split("/")[-1] + "\n")
+    frame_file.writelines(frame_path.split("/")[-1])
