@@ -8,3 +8,6 @@ notebooks/.ipynb_checkpoints
 .ipynb_checkpoints/
 tiny_nerf_data.npz
 runs/
+src/hair_step/checkpoints/SAM-models/sam_vit_h_4b8939.pth
+src/hair_step/results/real_imgs
+src/hair_step/temp.png
