@@ -21,7 +21,7 @@ def main():
     parser.add_argument(
         "-c",
         "--colmap",
-        default=pathlib.Path("./data/output/colmap/"),
+        required=True,
         help="""
         Input COLMAP model path.
         """,
@@ -30,7 +30,7 @@ def main():
     parser.add_argument(
         "-o",
         "--output",
-        default=pathlib.Path("./data/output/nerf/model/"),
+        required=True,
         help="""
         Output camera pose directory.
         """,

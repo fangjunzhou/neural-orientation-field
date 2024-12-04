@@ -17,7 +17,7 @@ def main():
     parser.add_argument(
         "-i",
         "--input",
-        default=pathlib.Path("./data/images/"),
+        required=True,
         help="""
         Input images directory.
         """,
@@ -26,7 +26,7 @@ def main():
     parser.add_argument(
         "-o",
         "--output",
-        default=pathlib.Path("./data/output/colmap/"),
+        required=True,
         help="""
         Output model directory.
         """,

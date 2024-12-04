@@ -34,7 +34,7 @@ def main():
     parser.add_argument(
         "-i",
         "--images",
-        default=pathlib.Path("./data/images/"),
+        required=True,
         help="""
         Input images directory.
         """,
@@ -43,7 +43,7 @@ def main():
     parser.add_argument(
         "-m",
         "--model",
-        default=pathlib.Path("./data/output/colmap/model/0/"),
+        required=True,
         help="""
         The COLMAP model path. Should be a directory containing cameras.bin, 
         images.bin, and points3D.bin. The default path is ./data/output/colmap/model/0/

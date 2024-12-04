@@ -27,7 +27,7 @@ def main():
     parser.add_argument(
         "-i",
         "--image",
-        default=pathlib.Path("./data/images/"),
+        required=True,
         help="""
         Input images path.
         """,
@@ -36,7 +36,7 @@ def main():
     parser.add_argument(
         "-c",
         "--cam",
-        default=pathlib.Path("./data/camera/"),
+        required=True,
         help="""
         Input camera pose path.
         """,
@@ -45,7 +45,7 @@ def main():
     parser.add_argument(
         "-o",
         "--output",
-        default=pathlib.Path("./data/output/nerf/model/"),
+        required=True,
         help="""
         Output model directory.
         """,
@@ -113,6 +113,18 @@ def main():
         ray_dataset_train = NeRFRayDataset(image_dataset_train, progress)
 
     # ------------------------- Training ------------------------- #
+
+    # Save model parameters.
+
+    model_params = {
+        "coarse_pos_encode": config.coarse_pos_encode,
+        "fine_pos_encode": config.fine_pos_encode,
+        "nc": config.nc,
+        "fc": config.fc,
+        "samples_per_ray": config.samples_per_ray,
+        "max_subd_samples": config.max_subd_samples,
+    }
+    torch.save(model_params, output_path / f"model_params.pth")
 
     # Init model.
     coarse_model = NeRfCoarseModel(
@@ -256,16 +268,6 @@ def main():
     torch.save(coarse_model.state_dict(),
                output_path / f"coarse_final.pth")
     torch.save(fine_model.state_dict(), output_path / f"fine_final.pth")
-
-    model_params = {
-        "coarse_pos_encode": config.coarse_pos_encode,
-        "fine_pos_encode": config.fine_pos_encode,
-        "nc": config.nc,
-        "fc": config.fc,
-        "samples_per_ray": config.samples_per_ray,
-        "max_subd_samples": config.max_subd_samples,
-    }
-    torch.save(model_params, output_path / f"model_params.pth")
 
 
 if __name__ == "__main__":
