@@ -44,9 +44,10 @@ def nerf_image_render(
     cam_orig = cam_orig.reshape(-1, 3)
     cam_ray = cam_ray.reshape(-1, 3)
     num_pixels = cam_orig.shape[0]
-    color_pred = torch.zeros((num_pixels, 3))
+    coarse_pred = torch.zeros((num_pixels, 3))
+    fine_pred = torch.zeros((num_pixels, 3))
     for i in range(0, num_pixels, ray_batch_size):
-        _, occupancy, sample_depth = static_volumetric_renderer(
+        coarse_color_batch, occupancy, sample_depth = static_volumetric_renderer(
             coarse_model,
             cam_orig[i:i+ray_batch_size],
             cam_ray[i:i+ray_batch_size],
@@ -56,7 +57,7 @@ def nerf_image_render(
             num_pos_encode=coarse_pos_encode,
             device=device
         )
-        color_batch, _, _ = adaptive_volumetric_renderer(
+        fine_color_batch, _, _ = adaptive_volumetric_renderer(
             fine_model,
             cam_orig[i:i+ray_batch_size],
             cam_ray[i:i+ray_batch_size],
@@ -66,9 +67,11 @@ def nerf_image_render(
             num_pos_encode=fine_pos_encode,
             device=device
         )
-        color_pred[i:i+ray_batch_size] = color_batch.detach()
-    image_pred = color_pred.reshape((h, w, -1))
-    return image_pred
+        coarse_pred[i:i+ray_batch_size] = coarse_color_batch.detach()
+        fine_pred[i:i+ray_batch_size] = fine_color_batch.detach()
+    coarse_pred = coarse_pred.reshape((h, w, -1))
+    fine_pred = fine_pred.reshape((h, w, -1))
+    return coarse_pred, fine_pred
 
 
 def static_volumetric_renderer(
@@ -245,7 +248,7 @@ def cam_ray_from_pose(cam_transform: np.ndarray, h: int, w: int, f: float, cx: f
     cam_orig = np.matmul(cam_transform_inv, np.array([0, 0, 0, 1]))[:3]
     # Calculate camera ray.
     pixel_coord = np.moveaxis(
-        np.mgrid[0:h, 0:w], 0, -1) - np.array([cx, cy])
+        np.mgrid[0:h, 0:w], [0, 1, 2], [2, 1, 0]) - np.array([cx, cy])
     cam_ray_view = np.append(pixel_coord, -f * np.ones((h, w, 1)), axis=2)
     cam_ray_view_homo = np.append(
         cam_ray_view, np.zeros((h, w, 1)), axis=2)

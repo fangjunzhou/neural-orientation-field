@@ -4,13 +4,14 @@ import logging
 import sys
 from tqdm import tqdm
 
+import numpy as np
 import torch
 from torch.utils.data import DataLoader, RandomSampler, random_split
 from torch.utils.tensorboard.writer import SummaryWriter
 
-from neural_orientation_field.nerf.dataset import NeRFImageDataset, NeRFRayDataset
+from neural_orientation_field.nerf.dataset import NeRFPriorImageDataset, NeRFRayDataset
 from neural_orientation_field.nerf.model import NeRfCoarseModel, NeRfFineModel
-from neural_orientation_field.nerf.utils import cam_ray_from_pose, nerf_image_render, pos_encode, static_volumetric_renderer, adaptive_volumetric_renderer
+from neural_orientation_field.nerf.utils import cam_ray_from_pose, nerf_image_render,  static_volumetric_renderer, adaptive_volumetric_renderer
 from neural_orientation_field.nerf.training_config import NeRFTrainingConfig
 
 
@@ -34,10 +35,10 @@ def main():
     )
     parser.add_argument(
         "-c",
-        "--colmap",
-        default=pathlib.Path("./data/output/colmap/"),
+        "--cam",
+        default=pathlib.Path("./data/camera/"),
         help="""
-        Input COLMAP model path.
+        Input camera pose path.
         """,
         type=pathlib.Path
     )
@@ -74,9 +75,9 @@ def main():
     if not image_path.exists():
         logging.error("The input image directory doesn't exist.")
         sys.exit(1)
-    colmap_model_path: pathlib.Path = args.colmap
-    if not colmap_model_path.exists():
-        logging.error("The input COLMAP model directory doesn't exist.")
+    cam_path: pathlib.Path = args.cam
+    if not cam_path.exists():
+        logging.error("The input camera pose directory doesn't exist.")
         sys.exit(1)
     output_path: pathlib.Path = args.output
     if not output_path.exists():
@@ -98,8 +99,21 @@ def main():
 
     # ----------------------- Load Dataset ----------------------- #
 
+    # Load camera parameters.
+    frame_name_path = cam_path / "frame-names.txt"
+    cam_transform_path = cam_path / "camera-transforms.npy"
+    cam_param_path = cam_path / "camera-params.npy"
+    with open(frame_name_path, "r") as frame_path_file:
+        frame_names = frame_path_file.read().split("\n")
+        frame_paths = [image_path / frame_name for frame_name in frame_names]
+    with open(cam_transform_path, "rb") as cam_transform_file:
+        cam_transforms = np.load(cam_transform_file)
+    with open(cam_param_path, "rb") as cam_param_file:
+        cam_params = np.load(cam_param_file)
+
     # Load image dataset.
-    image_dataset = NeRFImageDataset(image_path, colmap_model_path)
+    image_dataset = NeRFPriorImageDataset(
+        frame_paths, cam_params, cam_transforms)
     num_train = int(config.train_test_split * len(image_dataset))
     num_test = len(image_dataset) - num_train
     image_dataset_train, image_dataset_test = random_split(
@@ -186,7 +200,7 @@ def main():
                                            cy) = image_dataset_test[test_image_idx]
                 cam_orig, cam_ray_world = cam_ray_from_pose(
                     cam_transform, h, w, f, cx, cy)
-                image_pred = nerf_image_render(
+                coarse_pred, fine_pred = nerf_image_render(
                     coarse_model,
                     fine_model,
                     cam_orig,
@@ -200,7 +214,9 @@ def main():
                     config.fine_pos_encode,
                     device
                 )
-                writer.add_image("Rendered Test Image", image_pred, (it *
+                writer.add_image("Rendered Test Image Fine", fine_pred, (it *
+                                 len(dataloader) + batch_i) * config.ray_batch_size, dataformats="HWC")
+                writer.add_image("Rendered Test Image Coarse", coarse_pred, (it *
                                  len(dataloader) + batch_i) * config.ray_batch_size, dataformats="HWC")
                 coarse_model.train()
                 fine_model.train()

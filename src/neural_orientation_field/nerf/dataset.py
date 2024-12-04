@@ -38,6 +38,30 @@ class NeRFImageDataset(Dataset):
         return image, cam_transform, (h, w), (f, cx, cy)
 
 
+class NeRFPriorImageDataset(Dataset):
+    def __init__(self, frame_paths: list[pathlib.Path], param: np.ndarray, trans: np.ndarray):
+        self.frame_paths = frame_paths
+        f, cx, cy = param
+        self.f = f
+        self.cx = cx
+        self.cy = cy
+        self.cam_transforms = trans
+
+    def __len__(self):
+        return len(self.frame_paths)
+
+    def __getitem__(self, idx):
+        # Convert image to (h, w, 3) np.ndarray.
+        image = Image.open(self.frame_paths[idx])
+        image = np.array(image) / 255
+        h, w, _ = image.shape
+        # Remove alpha channel.
+        if image.shape[2] != 3:
+            image = image[:, :, :3]
+        cam_transform = np.linalg.inv(self.cam_transforms[idx])
+        return image, cam_transform, (h, w), (self.f, self.cx, self.cy)
+
+
 class NeRFRayDataset(Dataset):
     def __init__(self, image_dataset: Dataset, tqdm: Optional[tqdm] = None):
         self.pixels = []
