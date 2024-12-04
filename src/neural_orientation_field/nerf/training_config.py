@@ -14,8 +14,8 @@ class NeRFTrainingConfig:
     max_subd_samples: int = 8
     # Hyper parameters.
     lr: float = 2e-4
-    num_iters: int = 8
+    num_epoch: int = 8
     ray_batch_size: int = 8192
     # Misc.
-    train_test_split = 0.9
-    save_image_every_n_batch: int = 512
+    num_valid_image = 4
+    valid_per_epoch: int = 16

@@ -52,15 +52,6 @@ def main():
         type=pathlib.Path
     )
     parser.add_argument(
-        "-e",
-        "--eval",
-        default=pathlib.Path("./data/output/nerf/eval/"),
-        help="""
-        Output evaluation directory.
-        """,
-        type=pathlib.Path
-    )
-    parser.add_argument(
         "-d",
         "--device",
         default="cpu",
@@ -82,9 +73,6 @@ def main():
     output_path: pathlib.Path = args.output
     if not output_path.exists():
         output_path.mkdir(parents=True)
-    eval_path: pathlib.Path = args.eval
-    if not eval_path.exists():
-        eval_path.mkdir(parents=True)
 
     device_arg = args.device
     if device_arg == "mps" and torch.mps.is_available():
@@ -114,12 +102,12 @@ def main():
     # Load image dataset.
     image_dataset = NeRFPriorImageDataset(
         frame_paths, cam_params, cam_transforms)
-    num_train = int(config.train_test_split * len(image_dataset))
-    num_test = len(image_dataset) - num_train
-    image_dataset_train, image_dataset_test = random_split(
-        image_dataset, [num_train, num_test])
+    num_train = len(image_dataset) - config.num_valid_image
+    num_valid = config.num_valid_image
+    image_dataset_train, image_dataset_valid = random_split(
+        image_dataset, [num_train, num_valid])
     logging.info(f"Training image size: {len(image_dataset_train)}")
-    logging.info(f"Testing image size: {len(image_dataset_test)}")
+    logging.info(f"Validation image size: {len(image_dataset_valid)}")
     # Loading ray dataset.
     with tqdm(total=len(image_dataset_train), desc="Processing Image") as progress:
         ray_dataset_train = NeRFRayDataset(image_dataset_train, progress)
@@ -150,10 +138,18 @@ def main():
     )
 
     writer = SummaryWriter(flush_secs=1)
-    test_image_idx = 0
-    test_image, _, _, _ = image_dataset_test[test_image_idx]
-    writer.add_image("Test Image Ground Truth", test_image, dataformats="HWC")
-    for it in tqdm(range(config.num_iters)):
+    valid_images = np.array(
+        [valid_image for valid_image, _, _, _ in image_dataset_valid]
+    )
+    writer.add_image("Valid Image Ground Truth",
+                     valid_images, dataformats="NHWC")
+
+    best_loss = float("inf")
+    best_model_coarse = None
+    best_model_fine = None
+
+    for epoch in tqdm(range(config.num_epoch)):
+        valid_every_n_batch = int(len(dataloader) / config.valid_per_epoch)
         # One iteration of the training.
         for batch_i, (cam_orig_batch, cam_ray_batch, color_batch) in enumerate(tqdm(dataloader)):
             cam_orig_batch = cam_orig_batch.type(torch.float32).to(device)
@@ -169,7 +165,7 @@ def main():
                 num_pos_encode=config.coarse_pos_encode,
                 device=device
             )
-            loss_coarse = torch.nn.functional.mse_loss(
+            coarse_loss = torch.nn.functional.mse_loss(
                 coarse_color_pred, color_batch)
             fine_color_pred, _, _ = adaptive_volumetric_renderer(
                 fine_model,
@@ -181,54 +177,95 @@ def main():
                 num_pos_encode=config.fine_pos_encode,
                 device=device
             )
-            loss_fine = torch.nn.functional.mse_loss(
+            fine_loss = torch.nn.functional.mse_loss(
                 fine_color_pred, color_batch)
-            loss = loss_coarse + loss_fine
+            loss = coarse_loss + fine_loss
             loss.backward()
             coarse_optimizer.step()
             coarse_optimizer.zero_grad()
             fine_optimizer.step()
             fine_optimizer.zero_grad()
-            writer.add_scalar("Coarse Loss", loss_coarse,
-                              (it * len(dataloader) + batch_i) * config.ray_batch_size)
-            writer.add_scalar("Fine Loss", loss_fine,
-                              (it * len(dataloader) + batch_i) * config.ray_batch_size)
-            if batch_i % config.save_image_every_n_batch == 0:
+            writer.add_scalar("Coarse Loss Train", coarse_loss,
+                              (epoch * len(dataloader) + batch_i) * config.ray_batch_size)
+            writer.add_scalar("Fine Loss Train", fine_loss,
+                              (epoch * len(dataloader) + batch_i) * config.ray_batch_size)
+            if batch_i % valid_every_n_batch == 0:
                 coarse_model.eval()
                 fine_model.eval()
-                _, cam_transform, (h, w), (f, cx,
-                                           cy) = image_dataset_test[test_image_idx]
-                cam_orig, cam_ray_world = cam_ray_from_pose(
-                    cam_transform, h, w, f, cx, cy)
-                coarse_pred, fine_pred = nerf_image_render(
-                    coarse_model,
-                    fine_model,
-                    cam_orig,
-                    cam_ray_world,
-                    config.ray_batch_size,
-                    config.nc,
-                    config.fc,
-                    config.samples_per_ray,
-                    config.max_subd_samples,
-                    config.coarse_pos_encode,
-                    config.fine_pos_encode,
-                    device
-                )
-                writer.add_image("Rendered Test Image Fine", fine_pred, (it *
-                                 len(dataloader) + batch_i) * config.ray_batch_size, dataformats="HWC")
-                writer.add_image("Rendered Test Image Coarse", coarse_pred, (it *
-                                 len(dataloader) + batch_i) * config.ray_batch_size, dataformats="HWC")
+
+                coarse_preds = []
+                fine_preds = []
+                coarse_losses = []
+                fine_losses = []
+                for valid_image, cam_transform, (h, w), (f, cx, cy) in image_dataset_valid:
+                    cam_orig, cam_ray_world = cam_ray_from_pose(
+                        cam_transform, h, w, f, cx, cy)
+                    coarse_pred, fine_pred = nerf_image_render(
+                        coarse_model,
+                        fine_model,
+                        cam_orig,
+                        cam_ray_world,
+                        config.ray_batch_size,
+                        config.nc,
+                        config.fc,
+                        config.samples_per_ray,
+                        config.max_subd_samples,
+                        config.coarse_pos_encode,
+                        config.fine_pos_encode,
+                        device
+                    )
+                    coarse_preds.append(coarse_pred)
+                    fine_preds.append(fine_pred)
+                    valid_image = torch.tensor(valid_image)
+                    coarse_loss = torch.nn.functional.mse_loss(
+                        coarse_pred, valid_image)
+                    fine_loss = torch.nn.functional.mse_loss(
+                        fine_pred, valid_image)
+                    coarse_losses.append(coarse_loss)
+                    fine_losses.append(fine_loss)
+
+                coarse_preds = np.array(coarse_preds)
+                fine_preds = np.array(fine_preds)
+                coarse_loss_valid = np.array(coarse_losses).mean()
+                fine_loss_valid = np.array(fine_losses).mean()
+                loss_valid = coarse_loss_valid + fine_loss_valid
+                if loss_valid < best_loss:
+                    best_model_coarse = coarse_model.state_dict()
+                    best_model_fine = fine_model.state_dict()
+                    best_loss = loss_valid
+                writer.add_scalar("Coarse Loss Valid", coarse_loss_valid,
+                                  (epoch * len(dataloader) + batch_i) * config.ray_batch_size)
+                writer.add_scalar("Fine Loss Valid", fine_loss_valid,
+                                  (epoch * len(dataloader) + batch_i) * config.ray_batch_size)
+                writer.add_image("Rendered Validation Image Coarse", coarse_preds, (epoch *
+                                 len(dataloader) + batch_i) * config.ray_batch_size, dataformats="NHWC")
+                writer.add_image("Rendered Validation Image Fine", fine_preds, (epoch *
+                                 len(dataloader) + batch_i) * config.ray_batch_size, dataformats="NHWC")
                 coarse_model.train()
                 fine_model.train()
         torch.save(coarse_model.state_dict(),
-                   output_path / f"coarse_epoch_{it}.pth")
+                   output_path / f"coarse_epoch_{epoch}.pth")
         torch.save(fine_model.state_dict(),
-                   output_path / f"fine_epoch_{it}.pth")
+                   output_path / f"fine_epoch_{epoch}.pth")
     writer.close()
 
+    if best_model_coarse:
+        coarse_model.load_state_dict(best_model_coarse)
+    if best_model_fine:
+        fine_model.load_state_dict(best_model_fine)
     torch.save(coarse_model.state_dict(),
                output_path / f"coarse_final.pth")
     torch.save(fine_model.state_dict(), output_path / f"fine_final.pth")
+
+    model_params = {
+        "coarse_pos_encode": config.coarse_pos_encode,
+        "fine_pos_encode": config.fine_pos_encode,
+        "nc": config.nc,
+        "fc": config.fc,
+        "samples_per_ray": config.samples_per_ray,
+        "max_subd_samples": config.max_subd_samples,
+    }
+    torch.save(model_params, output_path / f"model_params.pth")
 
 
 if __name__ == "__main__":
