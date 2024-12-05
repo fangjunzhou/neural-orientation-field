@@ -7,15 +7,15 @@ class NeOFTrainingConfig:
     nc: int = 1
     fc: int = 8
     # Positional encoding size.
-    coarse_pos_encode: int = 4
-    fine_pos_encode: int = 6
+    coarse_pos_encode: int = 6
+    fine_pos_encode: int = 8
     # Camera ray sample rate.
-    samples_per_ray: int = 6
+    samples_per_ray: int = 16
     max_subd_samples: int = 8
     # Hyper parameters.
     lr: float = 2e-4
     num_epoch: int = 2
-    ray_batch_size: int = 8192
+    ray_batch_size: int = 4096
     # Misc.
     size_train_ray = 1
     num_valid_image = 2

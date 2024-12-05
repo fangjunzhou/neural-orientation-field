@@ -137,9 +137,11 @@ def static_volumetric_renderer(
 
     # Integrate orientation.
     sample_depths_diff = sample_depths[:, 1:] - sample_depths[:, :-1]
-    occupancy = torch.nn.functional.softmax(orientation[:, :, 3:6], dim=2)
-    occupancy_hair = occupancy[:, :, 0]
-    occupancy_body = 1 - occupancy[:, :, 2]
+    occupancy_scale = torch.relu(orientation[:, :, 6])
+    occupancy = torch.nn.functional.softmax(
+        orientation[:, :, 3:6], dim=2)
+    occupancy_hair = occupancy[:, :, 0] * occupancy_scale
+    occupancy_body = (1 - occupancy[:, :, 2]) * occupancy_scale
     occupancy_body = occupancy_body * sample_depths_diff
     residual_ray = torch.exp(-torch.cumsum(occupancy_body, dim=-1))
     # Transform to screen space.
@@ -184,9 +186,11 @@ def adaptive_volumetric_renderer(
 
     # Integrate orientation.
     sample_depths_diff = sample_depths[:, 1:] - sample_depths[:, :-1]
-    occupancy = torch.nn.functional.softmax(orientation[:, :, 3:6], dim=2)
-    occupancy_hair = occupancy[:, :, 0]
-    occupancy_body = 1 - occupancy[:, :, 2]
+    occupancy_scale = torch.relu(orientation[:, :, 6])
+    occupancy = torch.nn.functional.softmax(
+        orientation[:, :, 3:6], dim=2)
+    occupancy_hair = occupancy[:, :, 0] * occupancy_scale
+    occupancy_body = (1 - occupancy[:, :, 2]) * occupancy_scale
     occupancy_body = occupancy_body * sample_depths_diff
     residual_ray = torch.exp(-torch.cumsum(occupancy_body, dim=-1))
     # Transform to screen space.

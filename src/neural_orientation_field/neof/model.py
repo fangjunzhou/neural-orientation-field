@@ -36,7 +36,7 @@ class NeOFCoarseModel(NeOFModel):
         )
         self.layer2.apply(init_weights)
         # Layer 3 (default: 128 -> 4)
-        self.layer3 = nn.Linear(filter_size, 6)
+        self.layer3 = nn.Linear(filter_size, 7)
         self.layer3.apply(init_weights)
         # Short hand for nn.functional.relu
         self.relu = nn.functional.relu
@@ -89,7 +89,7 @@ class NeOFFineModel(NeOFModel):
         )
         self.layer3.apply(init_weights)
         # Layer 4 (default: 128 -> 4)
-        self.layer4 = nn.Linear(filter_size, 6)
+        self.layer4 = nn.Linear(filter_size, 7)
         self.layer4.apply(init_weights)
         # Short hand for nn.functional.relu
         self.relu = nn.functional.relu

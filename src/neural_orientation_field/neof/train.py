@@ -219,8 +219,21 @@ def main():
                 num_pos_encode=config.coarse_pos_encode,
                 device=device
             )
-            coarse_loss = torch.nn.functional.mse_loss(
+            sample_depths_diff = sample_depths[:, 1:] - sample_depths[:, :-1]
+            occupancy_hair = coarse_occupancy[:, :, 0]
+            occupancy_body = 1 - coarse_occupancy[:, :, 2]
+            occupancy_hair = occupancy_hair * sample_depths_diff
+            coarse_hair_mask = 1 - torch.exp(-occupancy_hair.sum(dim=-1))
+            coarse_hair_mask_loss = torch.nn.functional.mse_loss(
+                coarse_hair_mask, hair_mask_batch.flatten())
+            occupancy_body = occupancy_body * sample_depths_diff
+            coarse_body_mask = 1 - torch.exp(-occupancy_body.sum(dim=-1))
+            coarse_body_mask_loss = torch.nn.functional.mse_loss(
+                coarse_body_mask, body_mask_batch.flatten())
+            coarse_ss_orientation_loss = torch.nn.functional.mse_loss(
                 coarse_ss_orientation, hair_dir_batch)
+            coarse_loss = coarse_ss_orientation_loss + \
+                coarse_hair_mask_loss + coarse_body_mask_loss
 
             fine_ss_orientation, fine_occupancy, sample_depths = adaptive_volumetric_renderer(
                 fine_model,
@@ -233,8 +246,20 @@ def main():
                 num_pos_encode=config.fine_pos_encode,
                 device=device
             )
-            fine_loss = torch.nn.functional.mse_loss(
+            sample_depths_diff = sample_depths[:, 1:] - sample_depths[:, :-1]
+            occupancy_hair = fine_occupancy[:, :, 0]
+            occupancy_body = 1 - fine_occupancy[:, :, 2]
+            occupancy_hair = occupancy_hair * sample_depths_diff
+            fine_hair_mask = 1 - torch.exp(-occupancy_hair.sum(dim=-1))
+            fine_hair_mask_loss = torch.nn.functional.mse_loss(
+                fine_hair_mask, hair_mask_batch.flatten())
+            occupancy_body = occupancy_body * sample_depths_diff
+            fine_body_mask = 1 - torch.exp(-occupancy_body.sum(dim=-1))
+            fine_body_mask_loss = torch.nn.functional.mse_loss(
+                fine_body_mask, body_mask_batch.flatten())
+            fine_ss_orientation_loss = torch.nn.functional.mse_loss(
                 fine_ss_orientation, hair_dir_batch)
+            fine_loss = fine_ss_orientation_loss + fine_hair_mask_loss + fine_body_mask_loss
 
             loss = coarse_loss + fine_loss
             loss.backward()
