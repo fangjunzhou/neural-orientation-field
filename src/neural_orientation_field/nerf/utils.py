@@ -248,7 +248,7 @@ def cam_ray_from_pose(cam_transform: np.ndarray, h: int, w: int, f: float, cx: f
     cam_orig = np.matmul(cam_transform_inv, np.array([0, 0, 0, 1]))[:3]
     # Calculate camera ray.
     pixel_coord = np.moveaxis(
-        np.mgrid[0:h, 0:w], [0, 1, 2], [2, 1, 0]) - np.array([cx, cy])
+        np.mgrid[0:w, h-1:-1:-1], [0, 1, 2], [2, 1, 0]) - np.array([cx, cy])
     cam_ray_view = np.append(pixel_coord, -f * np.ones((h, w, 1)), axis=2)
     cam_ray_view_homo = np.append(
         cam_ray_view, np.zeros((h, w, 1)), axis=2)

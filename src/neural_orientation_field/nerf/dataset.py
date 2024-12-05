@@ -56,8 +56,7 @@ class NeRFImageDataset(Dataset):
         image = np.array(image) / 255
         h, w, _ = image.shape
         # Remove alpha channel.
-        if image.shape[2] != 3:
-            image = image[:, :, :3]
+        image = image[:, :, :3]
         cam_transform = np.linalg.inv(self.cam_transforms[idx])
         return image, cam_transform, (h, w), (self.f, self.cx, self.cy)
 
