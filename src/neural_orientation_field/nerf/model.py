@@ -7,6 +7,7 @@ class NeRFModel(nn.Module):
         super(NeRFModel, self).__init__()
 
 
+# TODO: Rename NeRF Model
 class NeRfCoarseModel(NeRFModel):
     def __init__(self, filter_size=128, num_encoding_functions=4):
         super(NeRfCoarseModel, self).__init__()
