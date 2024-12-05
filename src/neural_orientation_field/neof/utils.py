@@ -136,24 +136,19 @@ def static_volumetric_renderer(
 
     # Integrate orientation.
     sample_depths_diff = sample_depths[:, 1:] - sample_depths[:, :-1]
-    occupancy_scale = torch.relu(orientation[:, :, 6])
-    occupancy = torch.nn.functional.softmax(
-        orientation[:, :, 3:6], dim=2)
-    occupancy_hair = occupancy[:, :, 0] * occupancy_scale
-    occupancy_body = (1 - occupancy[:, :, 2]) * occupancy_scale
+    occupancy = torch.nn.functional.softmax(orientation[:, :, 3:6], dim=2)
+    occupancy_hair = occupancy[:, :, 0]
+    occupancy_body = 1 - occupancy[:, :, 2]
     occupancy_body = occupancy_body * sample_depths_diff
     residual_ray = torch.exp(-torch.cumsum(occupancy_body, dim=-1))
     # Transform to screen space.
-    cam_trans.transpose(-1, -2)
+    cam_trans = cam_trans.transpose(-1, -2)
     screen_space_orientation = torch.matmul(
         orientation[:, :, 0:3],
         cam_trans[:, :3, :3]
     )
     # Discard depth.
     screen_space_orientation = screen_space_orientation[:, :, :2]
-    # Normalize.
-    screen_space_orientation = screen_space_orientation / \
-        torch.norm(screen_space_orientation, dim=-1).unsqueeze(-1)
     # Integrate.
     curr_occupancy = 1 - torch.exp(-occupancy_hair * sample_depths_diff)
     screen_space_orientation = residual_ray.unsqueeze(
@@ -185,24 +180,19 @@ def adaptive_volumetric_renderer(
 
     # Integrate orientation.
     sample_depths_diff = sample_depths[:, 1:] - sample_depths[:, :-1]
-    occupancy_scale = torch.relu(orientation[:, :, 6])
-    occupancy = torch.nn.functional.softmax(
-        orientation[:, :, 3:6], dim=2)
-    occupancy_hair = occupancy[:, :, 0] * occupancy_scale
-    occupancy_body = (1 - occupancy[:, :, 2]) * occupancy_scale
+    occupancy = torch.nn.functional.softmax(orientation[:, :, 3:6], dim=2)
+    occupancy_hair = occupancy[:, :, 0]
+    occupancy_body = 1 - occupancy[:, :, 2]
     occupancy_body = occupancy_body * sample_depths_diff
     residual_ray = torch.exp(-torch.cumsum(occupancy_body, dim=-1))
     # Transform to screen space.
-    cam_trans.transpose(-1, -2)
+    cam_trans = cam_trans.transpose(-1, -2)
     screen_space_orientation = torch.matmul(
         orientation[:, :, 0:3],
         cam_trans[:, :3, :3]
     )
     # Discard depth.
     screen_space_orientation = screen_space_orientation[:, :, :2]
-    # Normalize.
-    screen_space_orientation = screen_space_orientation / \
-        torch.norm(screen_space_orientation, dim=-1).unsqueeze(-1)
     # Integrate.
     curr_occupancy = 1 - torch.exp(-occupancy_hair * sample_depths_diff)
     screen_space_orientation = residual_ray.unsqueeze(

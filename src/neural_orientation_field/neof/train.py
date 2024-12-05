@@ -231,7 +231,9 @@ def main():
             coarse_body_mask_loss = torch.nn.functional.mse_loss(
                 coarse_body_mask, body_mask_batch.flatten())
             coarse_ss_orientation_loss = torch.nn.functional.mse_loss(
-                coarse_ss_orientation, hair_dir_batch)
+                coarse_ss_orientation * hair_mask_batch,
+                hair_dir_batch * hair_mask_batch
+            )
             coarse_loss = coarse_ss_orientation_loss + \
                 coarse_hair_mask_loss + coarse_body_mask_loss
 
@@ -258,7 +260,9 @@ def main():
             fine_body_mask_loss = torch.nn.functional.mse_loss(
                 fine_body_mask, body_mask_batch.flatten())
             fine_ss_orientation_loss = torch.nn.functional.mse_loss(
-                fine_ss_orientation, hair_dir_batch)
+                fine_ss_orientation * hair_mask_batch,
+                hair_dir_batch * hair_mask_batch
+            )
             fine_loss = fine_ss_orientation_loss + fine_hair_mask_loss + fine_body_mask_loss
 
             loss = coarse_loss + fine_loss
