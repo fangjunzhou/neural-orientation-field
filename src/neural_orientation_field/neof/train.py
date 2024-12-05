@@ -221,12 +221,13 @@ def main():
             )
             sample_depths_diff = sample_depths[:, 1:] - sample_depths[:, :-1]
             occupancy_hair = coarse_occupancy[:, :, 0]
-            occupancy_body = 1 - coarse_occupancy[:, :, 2]
+            occupancy_face = coarse_occupancy[:, :, 1]
             occupancy_hair = occupancy_hair * sample_depths_diff
             coarse_hair_mask = 1 - torch.exp(-occupancy_hair.sum(dim=-1))
             coarse_hair_mask_loss = torch.nn.functional.mse_loss(
                 coarse_hair_mask, hair_mask_batch.flatten())
-            occupancy_body = occupancy_body * sample_depths_diff
+            occupancy_body = (
+                occupancy_hair + occupancy_face) * sample_depths_diff
             coarse_body_mask = 1 - torch.exp(-occupancy_body.sum(dim=-1))
             coarse_body_mask_loss = torch.nn.functional.mse_loss(
                 coarse_body_mask, body_mask_batch.flatten())
@@ -250,12 +251,13 @@ def main():
             )
             sample_depths_diff = sample_depths[:, 1:] - sample_depths[:, :-1]
             occupancy_hair = fine_occupancy[:, :, 0]
-            occupancy_body = 1 - fine_occupancy[:, :, 2]
+            occupancy_face = fine_occupancy[:, :, 1]
             occupancy_hair = occupancy_hair * sample_depths_diff
             fine_hair_mask = 1 - torch.exp(-occupancy_hair.sum(dim=-1))
             fine_hair_mask_loss = torch.nn.functional.mse_loss(
                 fine_hair_mask, hair_mask_batch.flatten())
-            occupancy_body = occupancy_body * sample_depths_diff
+            occupancy_body = (
+                occupancy_hair + occupancy_face) * sample_depths_diff
             fine_body_mask = 1 - torch.exp(-occupancy_body.sum(dim=-1))
             fine_body_mask_loss = torch.nn.functional.mse_loss(
                 fine_body_mask, body_mask_batch.flatten())

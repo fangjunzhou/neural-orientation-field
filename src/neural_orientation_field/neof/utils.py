@@ -73,13 +73,13 @@ def nerf_image_render(
             num_pos_encode=coarse_pos_encode,
             device=device
         )
-        body_occupancy = occupancy[:, :, 0] + occupancy[:, :, 1]
+        occupancy_body = occupancy[:, :, 0] + occupancy[:, :, 1]
         fine_color_batch, _, _ = adaptive_volumetric_renderer(
             fine_model,
             cam_trans[i:i+ray_batch_size],
             cam_orig[i:i+ray_batch_size],
             cam_ray[i:i+ray_batch_size],
-            body_occupancy,
+            occupancy_body,
             sample_depth,
             max_subd_sample=max_subd_samples,
             num_pos_encode=fine_pos_encode,
@@ -136,10 +136,10 @@ def static_volumetric_renderer(
 
     # Integrate orientation.
     sample_depths_diff = sample_depths[:, 1:] - sample_depths[:, :-1]
-    occupancy = torch.nn.functional.softmax(orientation[:, :, 3:6], dim=2)
+    occupancy = torch.nn.functional.relu(orientation[:, :, 3:5])
     occupancy_hair = occupancy[:, :, 0]
-    occupancy_body = 1 - occupancy[:, :, 2]
-    occupancy_body = occupancy_body * sample_depths_diff
+    occupancy_face = occupancy[:, :, 1]
+    occupancy_body = (occupancy_hair + occupancy_face) * sample_depths_diff
     residual_ray = torch.exp(-torch.cumsum(occupancy_body, dim=-1))
     # Transform to screen space.
     cam_trans = cam_trans.transpose(-1, -2)
@@ -154,6 +154,10 @@ def static_volumetric_renderer(
     screen_space_orientation = residual_ray.unsqueeze(
         -1) * curr_occupancy.unsqueeze(-1) * screen_space_orientation
     screen_space_orientation = torch.sum(screen_space_orientation, 1)
+    inv_hair_mask = torch.exp(-torch.sum(occupancy_hair *
+                              sample_depths_diff, dim=-1))
+    screen_space_orientation += inv_hair_mask.unsqueeze(-1) * torch.tensor(
+        [-1, -1]).to(device).unsqueeze(0)
     return screen_space_orientation, occupancy, sample_depths
 
 
@@ -180,10 +184,10 @@ def adaptive_volumetric_renderer(
 
     # Integrate orientation.
     sample_depths_diff = sample_depths[:, 1:] - sample_depths[:, :-1]
-    occupancy = torch.nn.functional.softmax(orientation[:, :, 3:6], dim=2)
+    occupancy = torch.nn.functional.relu(orientation[:, :, 3:5])
     occupancy_hair = occupancy[:, :, 0]
-    occupancy_body = 1 - occupancy[:, :, 2]
-    occupancy_body = occupancy_body * sample_depths_diff
+    occupancy_face = occupancy[:, :, 1]
+    occupancy_body = (occupancy_hair + occupancy_face) * sample_depths_diff
     residual_ray = torch.exp(-torch.cumsum(occupancy_body, dim=-1))
     # Transform to screen space.
     cam_trans = cam_trans.transpose(-1, -2)
@@ -198,6 +202,12 @@ def adaptive_volumetric_renderer(
     screen_space_orientation = residual_ray.unsqueeze(
         -1) * curr_occupancy.unsqueeze(-1) * screen_space_orientation
     screen_space_orientation = torch.sum(screen_space_orientation, 1)
+
+    inv_hair_mask = torch.exp(-torch.sum(occupancy_hair *
+                              sample_depths_diff, dim=-1))
+    screen_space_orientation += inv_hair_mask.unsqueeze(-1) * torch.tensor(
+        [-1, -1]).to(device).unsqueeze(0)
+
     return screen_space_orientation, occupancy, sample_depths
 
 
