@@ -15,7 +15,6 @@ def hair_dir_color2vec(hair_dir_col: np.ndarray):
         screen space hair direction with positive x to the right and postive y to the top.
     """
     hair_vec = hair_dir_col[:, :, :2] * 2 - 1
-    hair_vec = hair_vec / np.linalg.norm(hair_vec, axis=2)[:, :, np.newaxis]
     return hair_vec
 
 
