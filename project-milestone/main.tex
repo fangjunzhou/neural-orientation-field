@@ -111,7 +111,7 @@
 
     \subsection{Neural Orientation Field Model}
     
-    The neural orientation field model we proposed consists of multiple MLP layers and residual connections. The input of the network is the spatial coordinates $(x, y, z)$ of the point to be sampled. The output is the normalized orientation of the hair $(\theta, \phi)$, as well as the opacity parameter $\sigma = (\sigma_{void}, \sigma_{hair}, \sigma{body})$. A softmax layer is used to make $\Vert \sigma \Vert_{2} = 1$.
+    The neural orientation field model we proposed consists of multiple MLP layers and residual connections. The input of the network is the spatial coordinates $(x, y, z)$ of the point to be sampled. The output is the normalized orientation of the hair $(\theta, \phi)$, as well as the opacity parameter $\sigma = (\sigma_{void}, \sigma_{hair}, \sigma_{body})$. A softmax layer is used to make $\Vert \sigma \Vert_{2} = 1$.
 
     \subsection{Volumetric Rendering of a Neural Orientation Field}
 
