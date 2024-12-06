@@ -1,0 +1,18 @@
+\BOOKMARK [1][-]{section.1}{Introduction}{}% 1
+\BOOKMARK [1][-]{section.2}{Related Work}{}% 2
+\BOOKMARK [1][-]{section.3}{Dataset}{}% 3
+\BOOKMARK [1][-]{section.4}{Method}{}% 4
+\BOOKMARK [2][-]{subsection.4.1}{Neural Orientation Field \(NeOF\) Model}{section.4}% 5
+\BOOKMARK [2][-]{subsection.4.2}{Volumetric Rendering for Neural Orientation Field}{section.4}% 6
+\BOOKMARK [1][-]{section.5}{Experiment}{}% 7
+\BOOKMARK [2][-]{subsection.5.1}{Implementation Details}{section.5}% 8
+\BOOKMARK [3][-]{subsubsection.5.1.1}{Position Encoding and Hierarchical Volume Sampling}{subsection.5.1}% 9
+\BOOKMARK [3][-]{subsubsection.5.1.2}{NeOF Model Training and Test Setup}{subsection.5.1}% 10
+\BOOKMARK [2][-]{subsection.5.2}{Metrics}{section.5}% 11
+\BOOKMARK [2][-]{subsection.5.3}{Baseline Method}{section.5}% 12
+\BOOKMARK [1][-]{section.6}{Result}{}% 13
+\BOOKMARK [1][-]{section.7}{Conclusion}{}% 14
+\BOOKMARK [1][-]{section.8}{Contribution}{}% 15
+\BOOKMARK [2][-]{subsection.8.1}{Fangjun Zhou}{section.8}% 16
+\BOOKMARK [2][-]{subsection.8.2}{Weiran Xu}{section.8}% 17
+\BOOKMARK [2][-]{subsection.8.3}{Zhenyu Zhang}{section.8}% 18
