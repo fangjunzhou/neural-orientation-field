@@ -1,6 +1,7 @@
-\documentclass[12pt]{article}
+\documentclass{article}
 
-\usepackage{fullpage}
+\usepackage[accepted]{icml2024}
+
 \usepackage{datetime}
 \usepackage{amsfonts}
 \usepackage{amsmath}
@@ -8,22 +9,45 @@
 \usepackage{graphicx}
 \usepackage{subcaption}
 
-\usepackage{biblatex}
-\addbibresource{./references.bib}
-
 \usepackage{hyperref}
 
-\title{Learning Neural Orientation Field for Volumetric Hair Reconstruction}
-\author{
-    Fangjun Zhou \\ fzhou48
-    \and Zhenyu Zhang \\ zhenyuz5
-    \and Weiran Xu \\ weiran
-}
-\date{\today}
-
 \begin{document}
-\maketitle
 
+\twocolumn[
+\icmltitle{Learning Neural Orientation Field for Volumetric Hair Reconstruction}
+
+% It is OKAY to include author information, even for blind
+% submissions: the style file will automatically remove it for you
+% unless you've provided the [accepted] option to the icml2024
+% package.
+
+% List of affiliations: The first argument should be a (short)
+% identifier you will use later to specify author affiliations
+% Academic affiliations should list Department, University, City, Region, Country
+% Industry affiliations should list Company, City, Region, Country
+
+% You can specify symbols, otherwise they are numbered in order.
+% Ideally, you should not use this facility. Affiliations will be numbered
+% in order of appearance and this is the preferred way.
+\icmlsetsymbol{equal}{*}
+
+\begin{icmlauthorlist}
+\icmlauthor{Fangjun Zhou}{}
+\icmlauthor{Weiran Xu}{}
+\icmlauthor{Zhenyu Zhang}{}
+\end{icmlauthorlist}
+
+\icmlcorrespondingauthor{Fangjun Zhou}{fzhou48@stanford.edu}
+\icmlcorrespondingauthor{Weiran Xu}{weiran@stanford.edu}
+\icmlcorrespondingauthor{Zhenyu Zhang}{zhenyuz5@stanford.edu}
+
+% You may provide any keywords that you
+% find helpful for describing your paper; these are used to populate
+% the "keywords" metadata in the PDF but will not be shown in the document
+\icmlkeywords{Machine Learning, ICML, NeRF, MVS}
+
+\vskip 0.3in
+]
 
 \section{Introduction}
 
@@ -66,31 +90,31 @@ Our training set consists of 128 instances and our test set consists of 16 insta
 
 \begin{figure}[h]
 	\centering
-	\begin{subfigure}{0.24\textwidth}
+	\begin{subfigure}{0.11\textwidth}
 		\centering
 		\includegraphics[width=\textwidth]{./images/dataset/0009_rendered.png}
 		\caption{rendered}
 	\end{subfigure}
 	\hfill
-	\begin{subfigure}{0.24\textwidth}
+	\begin{subfigure}{0.11\textwidth}
 		\centering
 		\includegraphics[width=\textwidth]{./images/dataset/0009_bodymask.png}
 		\caption{body mask}
 	\end{subfigure}
 	\hfill
-	\begin{subfigure}{0.24\textwidth}
+	\begin{subfigure}{0.11\textwidth}
 		\centering
 		\includegraphics[width=\textwidth]{./images/dataset/0009_hairmask.png}
 		\caption{hair mask}
 	\end{subfigure}
 	\hfill
-	\begin{subfigure}{0.24\textwidth}
+	\begin{subfigure}{0.11\textwidth}
         \centering
         \includegraphics[width=\textwidth]{./images/dataset/0009_hairdir.png}
-        \caption{hair orientation}
+        \caption{orientation}
 	\end{subfigure}
 
-	\caption{dataset}
+	\caption{Synthetic dataset rendered by Blender}
 	\label{fig:dataset}
 \end{figure}
 
@@ -179,7 +203,8 @@ To evaluate the performance of the model, we rendered the orientation field on 1
 We use PSNR (Peak Signal-to-Noise Ratio) for evaluation. The reconstructed 2D hair orientation map is compared with the ground truth 2D hair orientation by calculating the MSE, and the MSEs from all different viewpoints are averaged. This average MSE is then used to compute the overall PSNR metric. The complete formula is as follows:
 
 \begin{align}
-    \text{MSE}_k &= \frac{1}{M \cdot N \cdot 2} \sum_{i=1}^M \sum_{j=1}^N \sum_{c=1}^2 \left(I_k (i,j,c) - K_k(i,j,c) \right)^2 \\
+    \text{MSE}_k &= \frac{1}{M \cdot N \cdot 2} \\
+    & \quad \sum_{i=1}^M \sum_{j=1}^N \sum_{c=1}^2 \left(I_k (i,j,c) - K_k(i,j,c) \right)^2 \\
     \text{MSE}_\text{avg} &= \frac{1}{N_\text{images}} \sum_{k=1}^{N_\text{images}}\text{MSE}_k \\
     \text{PSNR}_\text{avg} &= 10 \cdot \log_{10} \left( \frac{\text{MAX}^2}{\text{MSE}_{\text{avg}}} \right)
 \end{align}
@@ -203,9 +228,9 @@ We trained a NeRF model to represent the hair structure as a radiance field, lev
             \centering
             \includegraphics[width=\textwidth]{./images/baseline-method/test_6_hairstep.jpg}
         \end{subfigure}
-        \caption{ground truth with hairstep}
+        \caption{origin rendered with hairstep}
     \end{subfigure}
-    \hfill
+    \\
     \begin{subfigure}{0.48\textwidth}
         \begin{subfigure}{0.48\textwidth}
             \centering
@@ -216,10 +241,10 @@ We trained a NeRF model to represent the hair structure as a radiance field, lev
             \centering
             \includegraphics[width=\textwidth]{./images/baseline-method/pred_6_hairstep.jpg}
         \end{subfigure}
-        \caption{nerf pred with hairstep}
+        \caption{nerf predicted with hairstep}
     \end{subfigure}
 
-    \caption{NeRF's output on evaluation set, blurry output makes }
+    \caption{Hairstep on rendered image/NeRF prediction}
     \label{fig:nerf_hairstep}
 \end{figure}
 
@@ -233,7 +258,8 @@ We trained a NeRF model to represent the hair structure as a radiance field, lev
 
 \newpage
 
-\printbibliography
+\bibliographystyle{plainnat}
+\bibliography{references}
 
 \newpage
 
@@ -241,7 +267,7 @@ We trained a NeRF model to represent the hair structure as a radiance field, lev
 
 \subsection{Fangjun Zhou}
 
-COLMAP feature and camera pose preprocessing script; \texttt{colmap\_visualizer} with imagui and pyvista to help visualize the extracted point cloud / camera position; Blender camera pose extraction script and dataset generation; NeRF and NeOF camera ray generation algorithm, volumetric renderer, hierachical volume sampling, training script implementation; Introduction, related work, dataset, method sections of final report.
+COLMAP feature and camera pose preprocessing script; \texttt{colmap\_visualizer} with imagui and pyvista to help visualize the extracted point cloud/camera position; Blender camera pose extraction script and dataset generation; NeRF and NeOF camera ray generation algorithm, volumetric renderer, hierachical volume sampling, training script implementation; Introduction, related work, dataset, method sections of final report.
 
 \subsection{Weiran Xu}
 
