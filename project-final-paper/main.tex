@@ -26,61 +26,67 @@
 
 
 \section{Introduction}
+
 % Project motivation
 
 Reconstructing human hair is one of the most challenging yet critical process in rendering photorealistic digital human. Unlike other parts of the human body, human hair is highly detailed and often intertwined together. Therefore, it's difficult to use traditional photogrammetry method to reconstruct its structure.
 
 Before machine learning model is used in this field, artists often hand crafted splines on skulls to represent hair strands. Each strand is then textured and rendered to mimic the hair volume. This workflow requires a lot of experience as it's non-trivial for artists to infer the final render result from hair stand splines. To reduce the workload and improve the accuracy of hair reconstruction, machine learning models are trained to generate hair strand from captured images.
 
-In this work, we propose a new method capturing the hair structure by a 3D orientation field from $\mathbb{R}^{3} \rightarrow \mathbb{R}^{2}$ representing the hair growing direction and occupancy. On top of that, another occupancy field from $\mathbb{R}^{3} \rightarrow \mathbb{R}^{2}$ is learned to indicate hair and body occupancy. These mappings can be used later to generate hair stand directly by numerically integrating the orientation field. It can also be used as a latent variable to guide other generative models as mentioned in \cite{metzer_latent-nerf_2022}. We can fit this orientation field by a simple MLP. We then project the orientation field onto multiple camera view with a volumetric renderer. Since the screen space projection and volumetric rendering algorithms are differentiable, we are able to learn the orientation field from images from multiple camera angles.
+In this work, we propose a new method capturing the hair structure by learning a 3D orientation field from $\mathbb{R}^{3} \rightarrow \mathbb{R}^{2}$ representing the hair growing direction. On top of that, another occupancy field from $\mathbb{R}^{3} \rightarrow \mathbb{R}^{2}$ is learned to indicate hair and body occupancy. These mappings can be used later to generate hair strand directly by numerically integrating the orientation field. It can also be used as a latent variable to guide other generative models as mentioned in \cite{metzer_latent-nerf_2022}.
 
-%% TODO: Include the input and output of the model.
-Our model is capable of predicting the output for unseen views using the hair orientation field observed from a limited number of camera viewpoints. During training, the model learns an implicit representation of the orientation field at each point in 3D space based on the existing 2D hair orientation fields. In the prediction phase, the implicit representation is leveraged to reconstruct, integrate, and project the orientation field for a target viewpoint. This process enables the prediction of the 2D hair orientation field for the unseen view, yielding the desired output.
+%% TODO: Include the input and output of the model. DONE
 
+Our algorithm fits the 3D orientation field by a simple MLP model. The input of this model is a sample position in space, and the model predicts the hair orientation and occupancy at the sampled position. We also proposed a volumetric renderer for orientation fields capable of rendering the 2D hair orientation map for unseen views. Since this volumetric rendering algorithm is differentiable, we are able to train the model on multiple 2D hair orientation map from different viewing angles.
 
 \section{Related Work}
 
-Previous attempts to achieve this goal mainly focused on learning-based hair strand generation. This includes some studies about single view hair synthesis \cite{saito_3d_2018, zheng_hairstep_2023, wu_neuralhdhair_2022, ma_single-view_nodate}. Since the image only contains hair structure from one viewing angle, it's impossible to reconstruct entire hair accurately. These models often use pretrained image encoders such as ResNet-50 \cite{saito_3d_2018} to encode the abstract hair style into a feature vector, then use generative models such as U-Net \cite{zheng_hairstep_2023}, VAE \cite{saito_3d_2018}, and diffusion models \cite{sklyarova_neural_2023} to generate the final strand. These models also struggle with generating curly hair as there's only limited information about growing direction after feature extraction.
+Previous attempts to 3D hair reconstruction mainly focused on learning-based hair strand generation. This includes some studies about single view hair synthesis \cite{saito_3d_2018, zheng_hairstep_2023, wu_neuralhdhair_2022, ma_single-view_nodate}. Since the image only contains hair structure from one viewing angle, it's impossible to reconstruct entire hair accurately. These models often use pretrained image encoders such as ResNet-50 \cite{saito_3d_2018} to encode the abstract hair style into a feature vector, then use generative models such as U-Net \cite{zheng_hairstep_2023}, VAE \cite{saito_3d_2018}, and diffusion models \cite{sklyarova_neural_2023} to generate the final strand. These models also struggle with generating curly hair as there's only limited information about growing direction after feature extraction.
 
-In \cite{sklyarova_neural_2023} and \cite{rosu_neural_2022}, the authors also tried hair syntheses from multi-view images. However, these two studies still failed to capture finer detail.
+In \cite{sklyarova_neural_2023} and \cite{rosu_neural_2022}, the authors also tried hair syntheses from multi-view images. However, these two studies still failed to capture finer details.
 
-Another study about this topic tried to tackle this problem by expanding the traditional PatchMatch MVS (PMVS) algorithm to a Line-based PatchMatch MVS (LPMVS) \cite{nam_strand-accurate_nodate}. This method, despite its high accuracy, doesn't capture the volumetric property of human hair.
+Another study about this topic tried expanding the traditional PatchMatch MVS (PMVS) algorithm to a Line-based PatchMatch MVS (LPMVS) \cite{nam_strand-accurate_nodate}. This method, despite its high accuracy, doesn't capture the volumetric property of human hair.
 
 Our work is highly inspired by NeRF \cite{mildenhall_nerf_2020}, a model used for 3D reconstruction from 2D images. However, our model differs in two major way.
 
-In NeRF, the model fits a radiance field from $\mathbb{R}^{5} \rightarrow \mathbb{R}^{4}$. The input of the radiance function includes the sample position and view direction. However, since the orientation field our model fits is view-independent, the input space is only $\mathbb{R}^{3}$. This makes it easier for the model to capture more information from a smaller dataset.
+In NeRF, the model fits a radiance field from $\mathbb{R}^{5} \rightarrow \mathbb{R}^{4}$. The input of the radiance function includes the sample position and camera ray direction. However, since the orientation field our model fits is view-independent, the input space is only $\mathbb{R}^{3}$. This makes it easier for the model to capture more information from a smaller dataset.
 
 On top of that, the volumetric renderer on orientation field also differs from the one on radiance field. When sampling the radiance field, NeRF only integrates the sampled color for each ray, while our model needs to project the sample orientation onto the filming plane and then integrate the projected orientation.
 
 
 \section{Dataset}
 
-%% TODO: Data generation. (Fangjun)
+%% TODO: Data generation. (Fangjun) DONE
 
-The dataset used by this project is generated by We choose a scene from Blender's Geometry Nodes-based hair system demo files (cite) and rendered a dataset of portraits. Each portrait comes with its camera information (including the intrinsic matrix and the transformation matrix). We write custom shaders to generate body masks and hair masks. Since we have the model information for each hair strand, we also generate the orientation of the hair in the camera space, represented by channels rgb; see Figure \ref{fig:dataset}. Our training set consists of 128 portraits and our test set consists of 16 portraits, all generated using the same scene as the training set, but with different camera positions.
+The dataset used by this project is generated by a Blender geometry node-based hair system demo file \cite{foundation_blender_nodate}. We render the model from multiple viewing angles and exported the camera intrinsics and extrinsics for later use.
+
+Each instance includes a ray-traced image rendered by Cycles renderer, a body mask, a hair mask, and a screen space hair orienrtation map (Figure~\ref{fig:dataset}). The screen space hair orienrtation map stores the projected hair orientation in red and green channel. To render this map, we calculated the world space hair orientation with a custom geometry node and rendered the screen space orientation with a custom shader and AOV render pass.
+
+Our training set consists of 128 instances and our test set consists of 16 instances, all rendered from the same model but with different camera poses.
+
 \begin{figure}[h]
 	\centering
 	\begin{subfigure}{0.24\textwidth}
 		\centering
-		\includegraphics[width=\textwidth]{./images/0009_rendered.png}
+		\includegraphics[width=\textwidth]{./images/dataset/0009_rendered.png}
 		\caption{rendered}
 	\end{subfigure}
 	\hfill
 	\begin{subfigure}{0.24\textwidth}
 		\centering
-		\includegraphics[width=\textwidth]{./images/0009_bodymask.png}
+		\includegraphics[width=\textwidth]{./images/dataset/0009_bodymask.png}
 		\caption{body mask}
 	\end{subfigure}
 	\hfill
 	\begin{subfigure}{0.24\textwidth}
 		\centering
-		\includegraphics[width=\textwidth]{./images/0009_hairmask.png}
+		\includegraphics[width=\textwidth]{./images/dataset/0009_hairmask.png}
 		\caption{hair mask}
 	\end{subfigure}
 	\hfill
 	\begin{subfigure}{0.24\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{./images/0009_hairdir.png}
+        \includegraphics[width=\textwidth]{./images/dataset/0009_hairdir.png}
         \caption{hair orientation}
 	\end{subfigure}
 
@@ -90,74 +96,108 @@ The dataset used by this project is generated by We choose a scene from Blender'
 
 \section{Method}
 
-% TODO: Model structure. (Fangjun)
+% TODO: Model structure. (Fangjun) DONE
 % TODO: Volumetric renderer for vector field. (Fangjun)
 % TODO: Occupancy integration and mask loss. (Fangjun)
 % TODO: Hierachical volumetric sampling for vector field. (Fangjun)
 
-\subsection{Neural Orientation Field Model}
+\subsection{Neural Orientation Field (NeOF) Model}
 
-The neural orientation field model we proposed consists of multiple MLP layers and residual connections. The input of the network is the spatial coordinates $(x, y, z)$ of the point to be sampled. The output is the normalized orientation of the hair $(\theta, \phi)$, as well as the opacity parameter $\sigma = (\sigma_{void}, \sigma_{hair}, \sigma_{body})$. A softmax layer is used to make $\Vert \sigma \Vert_{2} = 1$.
+The neural orientation field (NeOF) model we proposed consists of multiple MLP layers and residual connections. The input of the network is the spatial coordinates $(x, y, z)$ of the point to be sampled. The output is the world space hair orientation $(\theta, \phi)$, as well as the opacity parameter $\sigma = (\sigma_{hair}, \sigma_{body})$.
 
-\subsection{Volumetric Rendering of a Neural Orientation Field}
+\subsection{Volumetric Rendering for Neural Orientation Field}
 
-For each camera in the scene, we can emit camera rays for each pixel on the filming plane. Then, hair orientation and occupancy can be sampled along the camera ray. Given the camera view matrix $V \in \mathbb{R}_{4x4}$, the normalized orientation vector in homogeneous coordinate $\mathbf{o} \in \mathbb{R}^{4}$ can be projected to the view space by $\mathbf{o}_{view} = V\mathbf{o}$.
+As the training data only consists of screen space hair orientation. We proposed a differentiable volumetric renderer $VolumetricRenderer(O_{world}, \Sigma)$ to render screen space hair orientation as well as body/hair masks from sampled world space orientation $O_{world} = \{ \mathbf{o}_{world}^{(i)} \}$ and occupancy $\Sigma = \{ \sigma^{(i)} \}$. To sample $O_{world}$ and $\Sigma$ for a pixel, we emit a camera ray with the known camera intrinsics and extrinsics on the filming plane. Then, the world space hair orientation and occupancy can be sampled along the camera ray. The volumetric rendering pipeline first projects the world space orientation to screen space, then integrate the screen space orientation with the sampled occupancy.
 
-To project the orientation vectors onto screen space, we need to apply camera projection to the view space vectors. However, as we choose pinhole camera as our camera model, the projected vectors are independent of the camera parameters. In this cases, the screen space projection of the view space orientation is $\mathbf{o}_{screen}$
+To project hair orientation, we first need to convert the world space orientation $\mathbf{o}_{world}$ to an orientation vector in homogeneous coordinate $\mathbf{v}_{world} \in \mathbb{R}^{4}$. Given the camera extrinsic matrix $M \in \mathbb{R}_{4x4}$, $\mathbf{v}_{world}$ can be projected to the view space by $\mathbf{v}_{view} = M\mathbf{v}_{world}$.
 
-\begin{align}
-	P &= \begin{bmatrix}
-        1 & 0 & 0 & 0 \\
-        0 & 1 & 0 & 0 \\
-        0 & 0 & 0 & 0 \\
-        0 & 0 & 0 & 0
-    \end{bmatrix} \\
-	\mathbf{o}_{screen} & = P\mathbf{o}_{view}
-\end{align}
+Normally, to project a world space vector onto screen space, we need to first apply view transform to get view space projection, then apply perspective transform to get screen space projection. However, as we choose pinhole camera as our camera model, the screen space orientation vectors are independent of the camera intrinsics. In other words, $\mathbf{v}_{screen} = \mathbf{v}_{view} = M\mathbf{v}_{world}$
 
 Similar to the volumetric rendering function defined in NeRF \cite{mildenhall_nerf_2020}, our rendering function for screen space orientation can be written as
 
 \begin{align}
-	O(\mathbf{r}) & = \int_{t_{n}}^{t_{f}} T(t) \sigma_{hair}(\mathbf{r}(t)) P V \mathbf{o}(\mathbf{r}(t), \mathbf{d}) dt \\
-	T(t) & = exp(-\int_{t_{n}}^{t_{f}} \sigma_{hair}(\mathbf{r}(s)) ds)
+	V(\mathbf{r}) & = \int_{t_{n}}^{t_{f}} T(t) \sigma_{hair}(\mathbf{r}(t)) M \mathbf{v}_{world}(\mathbf{r}(t)) dt \\
+	T(t) & = exp(-\int_{t_{n}}^{t} \sigma_{body}(\mathbf{r}(s)) ds)
 \end{align}
 
-One important difference between our model and NeRF is we use two separate occupancy for body and hair, while in NeRF one occupancy is used to integrate camera rays. In our case, camera rays can be blocked by face and body that doesn't contribute to the final hair orientation field. These parts are marked red in the preprocessing step s demonstrated in Figure \ref{fig:image_prep}. When training the model, we integrate the 2D hair orientation using the aforementioned volumetric render function. We also run a traditional NeRF volumetric renderer to integrate the body occupancy to generate the body mask. The final loss is defined as the combination of two losses.
+One important difference between our model and NeRF is we use two separate occupancy for body and hair, while in NeRF only one occupancy is used to integrate camera rays. In our case, camera rays can be blocked by face and body that doesn't contribute to the final integration. Therefore, we use $\sigma_{body}$ instead of $\sigma_{hair}$ to integrate residual ray $T(t)$.
+
+As we provide body mask and hair mask in the training data, we can also use the following rendering function to render body mask $B(\mathbf{r})$ and hair mask $H(\mathbf{r})$:
+
+\begin{align}
+	B(\mathbf{r}) & = 1 - exp(-\int_{t_{n}}^{t_{f}} \sigma_{body}(\mathbf{r}(s)) ds) \\
+	H(\mathbf{r}) & = 1 - exp(-\int_{t_{n}}^{t_{f}} \sigma_{hair}(\mathbf{r}(s)) ds)
+\end{align}
+
+Similar to the numerical estimation of radiance integration mentioned in NeRF, we use numerical estimation of orientation and mask integration defined as follows:
+
+\begin{align}
+	\hat{V}(\mathbf{r}) & = \sum_{i=1}^{N} T_{i} (1 - exp(-\sigma_{hair}^{(i)} \delta_{i})) M \mathbf{v}_{world}^{(i)} \\
+	T_{i} & = exp(-\sum_{j=1}^{i} \sigma_{body}^{(j)} \delta_{j}) \\
+	\hat{B}(\mathbf{r}) & = 1 - exp(-\sum_{i=1}^{N} \sigma_{body}^{(i)} \delta_{i}) \\
+	\hat{H}(\mathbf{r}) & = 1 - exp(-\sum_{i=1}^{N} \sigma_{hair}^{(i)} \delta_{i})
+\end{align}
+
+where $\delta_{i} = t_{i + 1} - t_{i}$. $\hat{V}(\mathbf{r})$, $\hat{B}(\mathbf{r})$, and $\hat{H}(\mathbf{r})$ are the final outputs of our volumetric render. The final loss is defined as the sum of orientation loss and mask losses. In theory, only orientation loss is required for the model to converge. However, we observed that introducing the mask losses helps improving the convergence speed. It also improves the model's performance on occupancy prediction accuracy.
 
 \section{Experiment}
 
-\subsection{Setup}
-% TODO: Baseline & Model setup
+% TODO: Experiement setup. (Fangjun, Zhenyu) DONE
+% TODO: Implementation Details. (Fangjun)
+% TODO: Baseline setup. DONE
 
-\subsubsection{Datasets} 
+\subsection{Implementation Details}
 
-To perform more precise model evaluation, we generated a dataset using Blender. For the same individual, the dataset includes 144 RGB hair photos with a resolution of 512x512 taken from different viewpoints, corresponding body and hair masks, camera parameters and pose matrices, as well as 2D hair orientations observed from the camera positions. The dataset for each individual is split into a training set with 128 images, a validation set with 16 images, and a test set with 16 images. 
+\subsubsection{Position Encoding and Hierarchical Volume Sampling}
 
-\subsubsection{Metrics} 
+We use position encoding and hierarchical volume sampling mentioned in \cite{mildenhall_nerf_2020} to improve convergence rate in our implementation.
+
+The position encoding function we use is defined as:
+
+\begin{align}
+    \gamma(p)_{2i} &= sin(2^{i} \pi p) \\
+    \gamma(p)_{2i + 1} &= cos(2^{i} \pi p)
+\end{align}
+
+As mentioned in \cite{mildenhall_nerf_2020}, deep neural networks tend to fit low frequency functions. Using position encoding functions helps improve the convergence rate on high frequency data. This is extremely important for our application as the spatial frequency of hair orientation and occupancy is very high. In our experiment, at least 8 levels of position encoding is required to capture detailed hair directions.
+
+For hierarchical volume sampling, we trained a coarse and a fine model simultaneously to fit the scene. The coarse model is used with an even sample depth to render the orientation map. The sampled body occupancy is then used to generate subdivided sample depth for the fine model. Areas with higher body occupancy in the coarse model will receive higher sample rate when rendered with the fine model. As mentioned previously, due to the high frequency nature of hair structure, hierarchical volume sampling is also always required in practice.
+
+% Duplicated dataset section, removed.
+% \subsection{Datasets} 
+
+% To perform more precise model evaluation, we generated a dataset using Blender. For the same individual, the dataset includes 144 RGB hair photos with a resolution of 512x512 taken from different viewpoints, corresponding body and hair masks, camera parameters and pose matrices, as well as 2D hair orientations observed from the camera positions. The dataset for each individual is split into a training set with 128 images, a validation set with 16 images, and a test set with 16 images. 
+
+\subsection{Metrics}
+
+% TODO: No need to include PSNR equations to save space.
+
 We use PSNR (Peak Signal-to-Noise Ratio) for evaluation. The model performs reconstruction on unseen viewpoints to obtain the reconstructed 2D hair orientation for these viewpoints. The vector field is compared with the Ground Truth 2D hair orientation by calculating the MSE, and the MSEs from all different viewpoints are averaged. This average MSE is then used to compute the overall PSNR metric. The complete formula is as follows:
 
-\begin{align*}
+\begin{align}
     \text{MSE}_k &= \frac{1}{M \cdot N \cdot 2} \sum_{i=1}^M \sum_{j=1}^N \sum_{c=1}^2 \left(I_k (i,j,c) - K_k(i,j,c) \right)^2 \\
     \text{MSE}_\text{avg} &= \frac{1}{N_\text{images}} \sum_{k=1}^{N_\text{images}}\text{MSE}_k \\
     \text{PSNR}_\text{avg} &= 10 \cdot \log_{10} \left( \frac{\text{MAX}^2}{\text{MSE}_{\text{avg}}} \right)
-\end{align*}
+\end{align}
 
 where $\text{MSE}_k$ is the MSE of image $k$ and its ground truth, $I_k$ and $K_k$ are the reconstructed 2D hair orientation for image $k$, $N$ and $M$ is the height and weight of the image, $N_\text{images}$ is the number of images, $\text{MSE}_\text{avg}$ is the average MSE of these image, MAX is the maximum possible value of each pixel (here we use 8-bit image, so it is 255), and $\text{PSNR}_\text{avg}$ is our final PSNR value.
 
-\subsubsection{Baseline Method}
+\subsection{Baseline Method}
+
 We trained a NeRF model to represent the hair structure as a radiance field, leveraging it to infer hair orientation. Since NeRF does not inherently encode orientation information, we relied on HairStep to predict orientation. Observed that the output of NeRF is often blurred, consistent with findings from the original NeRF paper \cite{mildenhall_nerf_2020}, which noted that NeRF tends to capture low-frequency features early in training, making HairStep difficult to segment out hair and output reasonable hair direction, thus unable to maintain relevant direction information; see Figure \ref{fig:nerf_hairstep}.
+
 \begin{figure}[h]
     \centering
     \begin{subfigure}{0.48\textwidth}
         \centering
         \begin{subfigure}{0.48\textwidth}
             \centering
-            \includegraphics[width=\textwidth]{./images/test_6_rendered.png}
+            \includegraphics[width=\textwidth]{./images/baseline-method/test_6_rendered.png}
         \end{subfigure}
         \hfill
         \begin{subfigure}{0.48\textwidth}
             \centering
-            \includegraphics[width=\textwidth]{./images/test_6_hairstep.jpg}
+            \includegraphics[width=\textwidth]{./images/baseline-method/test_6_hairstep.jpg}
         \end{subfigure}
         \caption{ground truth with hairstep}
     \end{subfigure}
@@ -165,12 +205,12 @@ We trained a NeRF model to represent the hair structure as a radiance field, lev
     \begin{subfigure}{0.48\textwidth}
         \begin{subfigure}{0.48\textwidth}
             \centering
-            \includegraphics[width=\textwidth]{./images/pred_6_nerf.png}
+            \includegraphics[width=\textwidth]{./images/baseline-method/pred_6_nerf.png}
         \end{subfigure}
         \hfill
         \begin{subfigure}{0.48\textwidth}
             \centering
-            \includegraphics[width=\textwidth]{./images/pred_6_hairstep.jpg}
+            \includegraphics[width=\textwidth]{./images/baseline-method/pred_6_hairstep.jpg}
         \end{subfigure}
         \caption{nerf pred with hairstep}
     \end{subfigure}
@@ -179,25 +219,11 @@ We trained a NeRF model to represent the hair structure as a radiance field, lev
     \label{fig:nerf_hairstep}
 \end{figure}
 
-\subsubsection{Implementation Details}
-
-
-\subsection{Observation}
-
-
-% TODO: Experiement setup. (Fangjun, Zhenyu)
-% TODO: Experiement observations. (Fangjun)
-% TODO: Baseline setup.
-
-% \subsection{Metrics}
-
-% The Peak Signal-to-Noise Ratio (PSNR) is a widely used metric in signal processing to assess image similarity, particularly in image reconstruction tasks. It effectively represents the Mean Squared Error (MSE) between two images in a 2D context.
-
-We also observed signs of overfitting in NeRF, with the PSNR on the evaluation set stabilizing around 1000 batches. We aim to address this with regularization methods (WIP). Additionally, we hypothesize that the model may converge faster on a smaller dataset, given that the hair orientation field we aim to fit is view-independent and should not vary with camera position. As the outcome is evident, we opted not to measure PSNR for the NeRF baseline.
-
 \section{Result}
 
 % TODO: Result. (Weiran, Zhenyu)
+
+\newpage
 
 \printbibliography
 
@@ -207,7 +233,7 @@ We also observed signs of overfitting in NeRF, with the PSNR on the evaluation s
 
 \subsection{Fangjun Zhou}
 
-Wrote preprocessing script that uses COLMAP to extract features and camera poses. Wrote colmap\_visualizer using imagui and pyvista to help visualize the extracted point cloud / camera position. Wrote helper methods to construct camera rays for NeRF training. Rendered hoover tower dataset in Blender. Implement and trained NeRF baseline. Derive orientation vector projection volumetric render function. Wrote method section in the milestone report.
+COLMAP feature and camera pose preprocessing script; \texttt{colmap\_visualizer} with imagui and pyvista to help visualize the extracted point cloud / camera position; Blender camera pose extraction script and dataset generation; NeRF and NeOF camera ray generation algorithm, volumetric renderer, hierachical volume sampling, training script implementation; Introduction, related work, dataset, method sections of final report.
 
 \subsection{Weiran Xu}
 
