@@ -11,17 +11,11 @@
 \usepackage{biblatex}
 \addbibresource{./references.bib}
 
-\title{
-Learning Neural Orientation Field for Volumetric Hair Reconstruction \\
-{
-\small
-Project Milestone
-}
-}
+\title{Learning Neural Orientation Field for Volumetric Hair Reconstruction}
 \author{
-Fangjun Zhou \\ fzhou48
-\and Weiran Xu \\ weiran
-\and Zhenyu Zhang \\ zhenyuz5
+  Fangjun Zhou \\ fzhou48
+  \and Weiran Xu \\ weiran
+  \and Zhenyu Zhang \\ zhenyuz5
 }
 \date{\today}
 
@@ -58,55 +52,55 @@ Our model will be trained on a set of images of human bust from multiple viewing
 
 $\mathbf{Image:}$  For each of the images, the preprocessing kernel will extract the projection of the hair growing direction onto the camera viewing plane. In this paper, we utilize the preprocessing pipeline in HairStep \cite{zheng_hairstep_2023} to segment out the hair from the image and get the direction vector field of the top layer hair. Each pixel in the preprocessed image has three channels rgb, we use r channel = 255 to denote the pixel belongs to the hair region, and the g and b channel together as the direction vector. For the region that does not belongs to hair but belongs to human body, its rgb = (127, 0, 0), and for other region we set rgb to $\mathbf{0}$.
 \begin{figure}[h]
-\centering
-% first col
-\begin{subfigure}{0.3\textwidth}
-\centering
-\includegraphics[width=\textwidth]{./images/portrait_raw/IMG_0342.png}
-\caption{raw}
-\end{subfigure}
-\hfill
-\begin{subfigure}{0.3\textwidth}
-\centering
-\includegraphics[width=\textwidth]{./images/portrait_raw/IMG_0346.png}
-\caption{raw}
-\end{subfigure}
-\hfill
-\begin{subfigure}{0.3\textwidth}
-\centering
-\includegraphics[width=\textwidth]{./images/portrait_raw/IMG_0349.png}
-\caption{raw}
-\end{subfigure}
-\vskip\baselineskip
-% second col
-\begin{subfigure}{0.3\textwidth}
-\centering
-\includegraphics[width=\textwidth]{./images/strand_map/IMG_0342.png}
-\caption{processed}
-\end{subfigure}
-\hfill
-\begin{subfigure}{0.3\textwidth}
-\centering
-\includegraphics[width=\textwidth]{./images/strand_map/IMG_0346.png}
-\caption{processed}
-\end{subfigure}
-\hfill
-\begin{subfigure}{0.3\textwidth}
-\centering
-\includegraphics[width=\textwidth]{./images/strand_map/IMG_0349.png}
-\caption{processed}
-\end{subfigure}
+	\centering
+	% first col
+	\begin{subfigure}{0.3\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{./images/portrait_raw/IMG_0342.png}
+		\caption{raw}
+	\end{subfigure}
+	\hfill
+	\begin{subfigure}{0.3\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{./images/portrait_raw/IMG_0346.png}
+		\caption{raw}
+	\end{subfigure}
+	\hfill
+	\begin{subfigure}{0.3\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{./images/portrait_raw/IMG_0349.png}
+		\caption{raw}
+	\end{subfigure}
+	\vskip\baselineskip
+	% second col
+	\begin{subfigure}{0.3\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{./images/strand_map/IMG_0342.png}
+		\caption{processed}
+	\end{subfigure}
+	\hfill
+	\begin{subfigure}{0.3\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{./images/strand_map/IMG_0346.png}
+		\caption{processed}
+	\end{subfigure}
+	\hfill
+	\begin{subfigure}{0.3\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{./images/strand_map/IMG_0349.png}
+		\caption{processed}
+	\end{subfigure}
 
-\caption{Image Preprocessing}
-\label{fig:image_prep}
+	\caption{Image Preprocessing}
+	\label{fig:image_prep}
 \end{figure}
 
 $\mathbf{Camera:}$ For portrait taken in reality, we use COLMAP, a general-purpose MVS pipeline that processes a set of images to generate a point cloud, to reconstruct the camera position and angle. We also implemented a visualizer for COLMAP for debug purposes. In Figure \ref{fig:colmap_demo}, we see that COLMAP successfully reconstruct camera for the image.
 \begin{figure}[h]
-\centering
-\includegraphics[width=0.5\linewidth]{./images/colmap_demo.png}
-\caption{Camera position reconstruction using COLMAP}
-\label{fig:colmap_demo}
+	\centering
+	\includegraphics[width=0.5\linewidth]{./images/colmap_demo.png}
+	\caption{Camera position reconstruction using COLMAP}
+	\label{fig:colmap_demo}
 \end{figure}
 
 \subsection{Neural Orientation Field Model}
@@ -120,20 +114,20 @@ For each camera in the scene, we can emit camera rays for each pixel on the film
 To project the orientation vectors onto screen space, we need to apply camera projection to the view space vectors. However, as we choose pinhole camera as our camera model, the projected vectors are independent of the camera parameters. In this cases, the screen space projection of the view space orientation is $\mathbf{o}_{screen}$
 
 \begin{align}
-P &= \begin{bmatrix}
-1 & 0 & 0 & 0 \\
-0 & 1 & 0 & 0 \\
-0 & 0 & 0 & 0 \\
-0 & 0 & 0 & 0
-\end{bmatrix} \\
-\mathbf{o}_{screen} &= P\mathbf{o}_{view}
+	P                   & = \begin{bmatrix}
+		                        1 & 0 & 0 & 0 \\
+		                        0 & 1 & 0 & 0 \\
+		                        0 & 0 & 0 & 0 \\
+		                        0 & 0 & 0 & 0
+	                        \end{bmatrix}     \\
+	\mathbf{o}_{screen} & = P\mathbf{o}_{view}
 \end{align}
 
 Similar to the volumetric rendering function defined in NeRF \cite{mildenhall_nerf_2020}, our rendering function for screen space orientation can be written as
 
 \begin{align}
-O(\mathbf{r}) &= \int_{t_{n}}^{t_{f}} T(t) \sigma_{hair}(\mathbf{r}(t)) P V \mathbf{o}(\mathbf{r}(t), \mathbf{d}) dt \\
-T(t) &= exp(-\int_{t_{n}}^{t_{f}} \sigma_{hair}(\mathbf{r}(s)) ds)
+	O(\mathbf{r}) & = \int_{t_{n}}^{t_{f}} T(t) \sigma_{hair}(\mathbf{r}(t)) P V \mathbf{o}(\mathbf{r}(t), \mathbf{d}) dt \\
+	T(t)          & = exp(-\int_{t_{n}}^{t_{f}} \sigma_{hair}(\mathbf{r}(s)) ds)
 \end{align}
 
 One important difference between our model and NeRF is we use two separate occupancy for body and hair, while in NeRF one occupancy is used to integrate camera rays. In our case, camera rays can be blocked by face and body that doesn't contribute to the final hair orientation field. These parts are marked red in the preprocessing step s demonstrated in Figure \ref{fig:image_prep}. When training the model, we integrate the 2D hair orientation using the aforementioned volumetric render function. We also run a traditional NeRF volumetric renderer to integrate the body occupancy to generate the body mask. The final loss is defined as the combination of two losses.
@@ -144,33 +138,33 @@ One important difference between our model and NeRF is we use two separate occup
 
 We choose a scene from Blender's Geometry Nodes-based hair system demo files (cite) and rendered a dataset of portraits. Each portrait comes with its camera information (including the intrinsic matrix and the transformation matrix). We write custom shaders to generate body masks and hair masks. Since we have the model information for each hair strand, we also generate the orientation of the hair in the camera space, represented by channels rgb; see Figure \ref{fig:dataset}. Our training set consists of 128 portraits and our test set consists of 16 portraits, all generated using the same scene as the training set, but with different camera position.
 \begin{figure}[h]
-\centering
-\begin{subfigure}{0.24\textwidth}
-\centering
-\includegraphics[width=\textwidth]{./images/0009_rendered.png}
-\caption{rendered}
-\end{subfigure}
-\hfill
-\begin{subfigure}{0.24\textwidth}
-\centering
-\includegraphics[width=\textwidth]{./images/0009_bodymask.png}
-\caption{body mask}
-\end{subfigure}
-\hfill
-\begin{subfigure}{0.24\textwidth}
-\centering
-\includegraphics[width=\textwidth]{./images/0009_hairmask.png}
-\caption{hair mask}
-\end{subfigure}
-\hfill
-\begin{subfigure}{0.24\textwidth}
-\centering
-\includegraphics[width=\textwidth]{./images/0009_hairdir.png}
-\caption{hair orientation}
-\end{subfigure}
+	\centering
+	\begin{subfigure}{0.24\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{./images/0009_rendered.png}
+		\caption{rendered}
+	\end{subfigure}
+	\hfill
+	\begin{subfigure}{0.24\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{./images/0009_bodymask.png}
+		\caption{body mask}
+	\end{subfigure}
+	\hfill
+	\begin{subfigure}{0.24\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{./images/0009_hairmask.png}
+		\caption{hair mask}
+	\end{subfigure}
+	\hfill
+	\begin{subfigure}{0.24\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{./images/0009_hairdir.png}
+		\caption{hair orientation}
+	\end{subfigure}
 
-\caption{dataset}
-\label{fig:dataset}
+	\caption{dataset}
+	\label{fig:dataset}
 \end{figure}
 
 \subsection{Metrics}
@@ -181,27 +175,27 @@ The Peak Signal-to-Noise Ratio (PSNR) is a widely used metric in signal processi
 
 We trained a NeRF model to represent the hair structure as a radiance field, leveraging it to infer hair orientation. Since NeRF does not inherently encode orientation information, we relied on HairStep to predict orientation. Initial observations showed a slow convergence rate when training in highly detailed scenes, consistent with findings from the original NeRF paper \cite{mildenhall_nerf_2020}, which noted that NeRF tends to capture low-frequency features early in training; see Figure \ref{fig:nerf_slow}. Another consequence of this is that the output of NeRF is often blurred, making HairStep difficult to segment out hair and output reasonable hair direction, thus unable to maintain relevant direction information; see Figure \ref{fig:nerf_base}.
 \begin{figure}[h]
-\centering
-\begin{subfigure}{0.3\textwidth}
-\centering
-\includegraphics[width=\textwidth]{./images/nerf_pred/nerf_800.png}
-\caption{step 800}
-\end{subfigure}
-\hfill
-\begin{subfigure}{0.3\textwidth}
-\centering
-\includegraphics[width=\textwidth]{./images/nerf_pred/nerf_4000.png}
-\caption{step 4000}
-\end{subfigure}
-\hfill
-\begin{subfigure}{0.3\textwidth}
-\centering
-\includegraphics[width=\textwidth]{./images/nerf_pred/nerf_10000.png}
-\caption{step 10000}
-\end{subfigure}
+	\centering
+	\begin{subfigure}{0.3\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{./images/nerf_pred/nerf_800.png}
+		\caption{step 800}
+	\end{subfigure}
+	\hfill
+	\begin{subfigure}{0.3\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{./images/nerf_pred/nerf_4000.png}
+		\caption{step 4000}
+	\end{subfigure}
+	\hfill
+	\begin{subfigure}{0.3\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{./images/nerf_pred/nerf_10000.png}
+		\caption{step 10000}
+	\end{subfigure}
 
-\caption{NeRF's output on evaluation set, shows slow convergence and high variance}
-\label{fig:nerf_slow}
+	\caption{NeRF's output on evaluation set, shows slow convergence and high variance}
+	\label{fig:nerf_slow}
 \end{figure}
 
 We also observed signs of overfitting in NeRF, with the PSNR on the evaluation set stabilizing around 1000 batches. We aim to address this with regularization methods (WIP). Additionally, we hypothesize that the model may converge faster on a smaller dataset, given that the hair orientation field we aim to fit is view-independent and should not vary with camera position. As the outcome is evident, we opted not to measure PSNR for the NeRF baseline.
@@ -214,34 +208,34 @@ We also observed signs of overfitting in NeRF, with the PSNR on the evaluation s
 %% No need to measure PSNR on the NeRF baseline, as the result is obvious.
 
 \begin{figure}[h]
-\centering
-\begin{subfigure}{0.3\textwidth}
-\centering
-\includegraphics[width=\textwidth]{./images/portrait_raw/IMG_0342.png}
-\caption{raw}
-\end{subfigure}
-\quad
-\begin{subfigure}{0.3\textwidth}
-\centering
-\includegraphics[width=\textwidth]{./images/nerf_pred/31.png}
-\caption{NeRF output}
-\end{subfigure}
+	\centering
+	\begin{subfigure}{0.3\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{./images/portrait_raw/IMG_0342.png}
+		\caption{raw}
+	\end{subfigure}
+	\quad
+	\begin{subfigure}{0.3\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{./images/nerf_pred/31.png}
+		\caption{NeRF output}
+	\end{subfigure}
 
-\vskip\baselineskip
-\begin{subfigure}{0.3\textwidth}
-\centering
-\includegraphics[width=\textwidth]{./images/strand_map/IMG_0342.png}
-\caption{hair direction extraction ground truth}
-\end{subfigure}
-\quad
-\begin{subfigure}{0.3\textwidth}
-\centering
-\includegraphics[width=\textwidth]{./images/nerf_pred_strand/31.png}
-\caption{hair direction extraction from NeRF output}
-\end{subfigure}
+	\vskip\baselineskip
+	\begin{subfigure}{0.3\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{./images/strand_map/IMG_0342.png}
+		\caption{hair direction extraction ground truth}
+	\end{subfigure}
+	\quad
+	\begin{subfigure}{0.3\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{./images/nerf_pred_strand/31.png}
+		\caption{hair direction extraction from NeRF output}
+	\end{subfigure}
 
-\caption{Baseline Experiment}
-\label{fig:nerf_base}
+	\caption{Baseline Experiment}
+	\label{fig:nerf_base}
 \end{figure}
 
 \section{Contribution}
