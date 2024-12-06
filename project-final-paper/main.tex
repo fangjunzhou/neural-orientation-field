@@ -152,7 +152,7 @@ where $\delta_{i} = t_{i + 1} - t_{i}$. $\hat{V}(\mathbf{r})$, $\hat{B}(\mathbf{
 
 We use position encoding and hierarchical volume sampling mentioned in \cite{mildenhall_nerf_2020} to improve convergence rate in our implementation.
 
-The position encoding function we use is defined as:
+The position encoding function is defined as:
 
 \begin{align}
     \gamma(p)_{2i} &= sin(2^{i} \pi p) \\
@@ -163,6 +163,10 @@ As mentioned in \cite{mildenhall_nerf_2020}, deep neural networks tend to fit lo
 
 For hierarchical volume sampling, we trained a coarse and a fine model simultaneously to fit the scene. The coarse model is used with an even sample depth to render the orientation map. The sampled body occupancy is then used to generate subdivided sample depth for the fine model. Areas with higher body occupancy in the coarse model will receive higher sample rate when rendered with the fine model. As mentioned previously, due to the high frequency nature of hair structure, hierarchical volume sampling is also always required in practice.
 
+\subsubsection{NeOF Model Training and Test Setup}
+
+Our model is trained on a training set of 128 2D orientation maps of size 512x512. We use Adam optimizer with $2e-4$ learning rate. For the coarse model, we use 6 levels of position encoding with a fixed sample rate of 16. For the fine model, we use 8 levels of position encoding with the maximum subdivided sample rate of 8. The model is trained for 8 epochs and the checkpoint with lowest loss on validation set is save.
+
 % Duplicated dataset section, removed.
 % \subsection{Datasets} 
 
@@ -170,9 +174,9 @@ For hierarchical volume sampling, we trained a coarse and a fine model simultane
 
 \subsection{Metrics}
 
-% TODO: No need to include PSNR equations to save space.
+To evaluate the performance of the model, we rendered the orientation field on 16 unseen camera views in the test set and evaluate the performance using rendered 2D orientation.
 
-We use PSNR (Peak Signal-to-Noise Ratio) for evaluation. The model performs reconstruction on unseen viewpoints to obtain the reconstructed 2D hair orientation for these viewpoints. The vector field is compared with the Ground Truth 2D hair orientation by calculating the MSE, and the MSEs from all different viewpoints are averaged. This average MSE is then used to compute the overall PSNR metric. The complete formula is as follows:
+We use PSNR (Peak Signal-to-Noise Ratio) for evaluation. The reconstructed 2D hair orientation map is compared with the ground truth 2D hair orientation by calculating the MSE, and the MSEs from all different viewpoints are averaged. This average MSE is then used to compute the overall PSNR metric. The complete formula is as follows:
 
 \begin{align}
     \text{MSE}_k &= \frac{1}{M \cdot N \cdot 2} \sum_{i=1}^M \sum_{j=1}^N \sum_{c=1}^2 \left(I_k (i,j,c) - K_k(i,j,c) \right)^2 \\
