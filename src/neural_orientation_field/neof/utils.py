@@ -44,7 +44,7 @@ def nerf_image_render(
         nc: float,
         fc: float,
         samples_per_ray: int,
-        max_subd_samples: int,
+        subd_samples: list[int],
         coarse_pos_encode: int,
         fine_pos_encode: int,
         device: torch.device = torch.device("cpu")
@@ -81,7 +81,7 @@ def nerf_image_render(
             cam_ray[i:i+ray_batch_size],
             occupancy_body,
             sample_depth,
-            max_subd_sample=max_subd_samples,
+            subd_samples=subd_samples,
             num_pos_encode=fine_pos_encode,
             device=device
         )
@@ -147,6 +147,7 @@ def static_volumetric_renderer(
         orientation[:, :, 0:3],
         cam_trans[:, :3, :3]
     )
+    screen_space_orientation = torch.sigmoid(screen_space_orientation) * 2 - 1
     # Discard depth.
     screen_space_orientation = screen_space_orientation[:, :, :2]
     # Integrate.
@@ -168,14 +169,14 @@ def adaptive_volumetric_renderer(
     camera_rays: torch.Tensor,
     occupancy: torch.Tensor,
     sample_depths: torch.Tensor,
-    max_subd_sample: int = 2,
+    subd_samples: list[int] = [4, 2],
     num_pos_encode: int = 6,
     device: torch.device = torch.device("cpu")
 ):
     sample_depths = adaptive_sample_depth(
         occupancy,
         sample_depths,
-        max_subd_sample,
+        subd_samples,
         device
     )
     # Sample from NeRF.
@@ -197,6 +198,7 @@ def adaptive_volumetric_renderer(
     )
     # Discard depth.
     screen_space_orientation = screen_space_orientation[:, :, :2]
+    screen_space_orientation = torch.sigmoid(screen_space_orientation) * 2 - 1
     # Integrate.
     curr_occupancy = 1 - torch.exp(-occupancy_hair * sample_depths_diff)
     screen_space_orientation = residual_ray.unsqueeze(
@@ -214,7 +216,7 @@ def adaptive_volumetric_renderer(
 def adaptive_sample_depth(
     occupancy: torch.Tensor,
     sample_depths: torch.Tensor,
-    max_subd_sample: int = 2,
+    subd_samples: list[int] = [4, 2],
     device: torch.device = torch.device("cpu")
 ):
     """Generate adaptive sample depth from depth and occupancy.
@@ -230,9 +232,9 @@ def adaptive_sample_depth(
     batch_size, _ = sample_depths.shape
     # Get the occupancy rank.
     _, occupancy_rank = torch.sort(occupancy[:, :-1], dim=-1, descending=True)
-    for i in range(min(max_subd_sample, occupancy_rank.shape[1])):
+    for i in range(min(len(subd_samples), occupancy_rank.shape[1])):
         depth_idx = occupancy_rank[:, i]
-        subd = max_subd_sample - i
+        subd = subd_samples[i]
         depth_start = sample_depths[torch.arange(
             0, batch_size), depth_idx].unsqueeze(1)
         depth_end = sample_depths[torch.arange(

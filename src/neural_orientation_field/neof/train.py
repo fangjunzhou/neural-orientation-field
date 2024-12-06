@@ -153,7 +153,7 @@ def main():
         "nc": config.nc,
         "fc": config.fc,
         "samples_per_ray": config.samples_per_ray,
-        "max_subd_samples": config.max_subd_samples,
+        "subd_samples": config.subd_samples,
     }
     torch.save(model_params, output_path / f"model_params.pth")
 
@@ -245,7 +245,7 @@ def main():
                 cam_ray_batch.reshape(-1, 3),
                 coarse_occupancy[:, :, 0] + coarse_occupancy[:, :, 1],
                 sample_depths,
-                max_subd_sample=config.max_subd_samples,
+                subd_samples=config.subd_samples,
                 num_pos_encode=config.fine_pos_encode,
                 device=device
             )
@@ -299,7 +299,7 @@ def main():
                         config.nc,
                         config.fc,
                         config.samples_per_ray,
-                        config.max_subd_samples,
+                        config.subd_samples,
                         config.coarse_pos_encode,
                         config.fine_pos_encode,
                         device
