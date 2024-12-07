@@ -34,13 +34,13 @@
 
 \begin{icmlauthorlist}
 \icmlauthor{Fangjun Zhou}{}
-\icmlauthor{Weiran Xu}{}
 \icmlauthor{Zhenyu Zhang}{}
+\icmlauthor{Weiran Xu}{}
 \end{icmlauthorlist}
 
 \icmlcorrespondingauthor{Fangjun Zhou}{fzhou48@stanford.edu}
-\icmlcorrespondingauthor{Weiran Xu}{weiran@stanford.edu}
 \icmlcorrespondingauthor{Zhenyu Zhang}{zhenyuz5@stanford.edu}
+\icmlcorrespondingauthor{Weiran Xu}{weiran@stanford.edu}
 
 % You may provide any keywords that you
 % find helpful for describing your paper; these are used to populate
@@ -51,7 +51,7 @@
 ]
 
 \begin{abstract}
-    Reconstructing 3D human hair is challenging due to its intricate, intertwined structure and fine details. We propose a Neural Orientation Field (NeOF) model that directly encodes hair’s growing direction and occupancy in 3D. Unlike conventional NeRF-based methods that rely on view-dependent radiance fields, our representation is view-independent and trained end-to-end from multiview 2D orientation maps. A novel volumetric renderer using differentiable projection of world-space orientations into screen-space, allowing supervision from multiple viewpoints. Experiments on synthetic datasets show that our approach recovers finer hair structures than baselines, establishing a robust, high-fidelity representation that can guide generative models or produce strand geometry directly.
+    Reconstructing 3D human hair is challenging due to its intricate, intertwined structure and fine details. We propose Neural Orientation Field (NeOF) model that directly encodes hair’s growing direction and occupancy in 3D. Unlike conventional NeRF-based methods that rely on view-dependent radiance fields, our representation is view-independent and trained end-to-end from multiview 2D orientation maps. A novel volumetric renderer using differentiable projection of world-space orientations into screen-space, allowing supervision from multiple viewpoints. Experiments on synthetic datasets show that our approach recovers finer hair structures than baselines, establishing a robust, high-fidelity representation that can guide generative models or produce strand geometry directly.
 \end{abstract}
 
 \section{Introduction}
@@ -66,13 +66,13 @@ In this work, we propose a new method capturing the hair structure by learning a
 
 %% TODO: Include the input and output of the model. DONE
 
-Our algorithm fits the 3D orientation field by a simple MLP model. The input of this model is a sample position in space, and the model predicts the hair orientation and occupancy at the sampled position. We also proposed a volumetric renderer for orientation fields capable of rendering the 2D hair orientation map for unseen views. Since this volumetric rendering algorithm is differentiable, we are able to train the model on multiple 2D hair orientation map from different viewing angles.
+Our algorithm fits the 3D orientation field by a simple MLP model. The input of this model is a sample position in space, and the model predicts the hair orientation and occupancy at the sampled position. We also propose a volumetric renderer for orientation fields capable of rendering the 2D hair orientation map for unseen views. Since this volumetric rendering algorithm is differentiable, we are able to train the model on multiple 2D hair orientation map from different viewing angles.
 
 \section{Related Work}
 
-Previous attempts to 3D hair reconstruction mainly focused on learning-based hair strand generation. This includes some studies about single view hair synthesis \cite{saito_3d_2018, zheng_hairstep_2023, wu_neuralhdhair_2022, ma_single-view_nodate}. Since the image only contains hair structure from one viewing angle, it's impossible to reconstruct entire hair accurately. These models often use pretrained image encoders such as ResNet-50 \cite{saito_3d_2018} to encode the abstract hair style into a feature vector, then use generative models such as U-Net \cite{zheng_hairstep_2023}, VAE \cite{saito_3d_2018}, and diffusion models \cite{sklyarova_neural_2023} to generate the final strand. These models also struggle with generating curly hair as there's only limited information about growing direction after feature extraction.
+Previous attempts to 3D hair reconstruction mainly focused on learning-based hair strand generation. This includes some studies about single view hair synthesis \cite{saito_3d_2018, zheng_hairstep_2023, wu_neuralhdhair_2022, ma_single-view_nodate}. Since the image only contains hair structure from one viewing angle, it's impossible to reconstruct entire hair accurately. These models often use pretrained image encoders such as ResNet-50 \cite{saito_3d_2018} to encode the abstract hair style into a feature vector, then use generative models such as U-Net \cite{zheng_hairstep_2023}, VAE \cite{saito_3d_2018}, and diffusion models \cite{sklyarova_neural_2023} to generate the final strand.
 
-In \cite{sklyarova_neural_2023} and \cite{rosu_neural_2022}, the authors also tried hair syntheses from multi-view images. However, these two studies still failed to capture finer details.
+% In \cite{sklyarova_neural_2023} and \cite{rosu_neural_2022}, the authors also tried hair syntheses from multi-view images. However, these two studies still failed to capture finer details.
 
 Another study about this topic tried expanding the traditional PatchMatch MVS (PMVS) algorithm to a Line-based PatchMatch MVS (LPMVS) \cite{nam_strand-accurate_nodate}. This method, despite its high accuracy, doesn't capture the volumetric property of human hair.
 
@@ -89,7 +89,7 @@ On top of that, the volumetric renderer on orientation field also differs from t
 
 The dataset used by this project is generated by a Blender geometry node-based hair system demo file \cite{foundation_blender_nodate}. We render the model from multiple viewing angles and exported the camera intrinsics and extrinsics for later use.
 
-Each instance includes a ray-traced image rendered by Cycles renderer, a body mask, a hair mask, and a screen space hair orienrtation map (Figure~\ref{fig:dataset}). The screen space hair orienrtation map stores the projected hair orientation in red and green channel. To render this map, we calculated the world space hair orientation with a custom geometry node and rendered the screen space orientation with a custom shader and AOV render pass.
+Each instance includes a ray-traced image rendered by Cycles renderer, a body mask, a hair mask, and a screen space hair orienrtation map (Figure~\ref{fig:dataset}). The screen space hair orienrtation map stores the projected hair orientation in red and green channel. To render this map, we calculated the world space hair orientation with a custom geometry node and rendered the screen space orientation with a custom shader and Blender's AOV render pass.
 
 Our training set consists of 128 instances and our test set consists of 16 instances, all rendered from the same model but with different camera poses.
 
@@ -131,11 +131,11 @@ Our training set consists of 128 instances and our test set consists of 16 insta
 
 \subsection{Neural Orientation Field (NeOF) Model}
 
-The neural orientation field (NeOF) model we proposed consists of multiple MLP layers and residual connections. The input of the network is the spatial coordinates $(x, y, z)$ of the point to be sampled. The output is the world space hair orientation $(\theta, \phi)$, as well as the opacity parameter $\sigma = (\sigma_{hair}, \sigma_{body})$.
+The neural orientation field (NeOF) model we propose consists of multiple MLP layers and residual connections. The input of the network is the spatial coordinates $(x, y, z)$ of the point to be sampled. The output is the world space hair orientation $(\theta, \phi)$, as well as the opacity parameter $\sigma = (\sigma_{hair}, \sigma_{body})$.
 
 \subsection{Volumetric Rendering for Neural Orientation Field}
 
-As the training data only consists of screen space hair orientation. We proposed a differentiable volumetric renderer $VolumetricRenderer(O_{world}, \Sigma)$ to render screen space hair orientation as well as body/hair masks from sampled world space orientation $O_{world} = \{ \mathbf{o}_{world}^{(i)} \}$ and occupancy $\Sigma = \{ \sigma^{(i)} \}$. To sample $O_{world}$ and $\Sigma$ for a pixel, we emit a camera ray with the known camera intrinsics and extrinsics on the filming plane. Then, the world space hair orientation and occupancy can be sampled along the camera ray. The volumetric rendering pipeline first projects the world space orientation to screen space, then integrate the screen space orientation with the sampled occupancy.
+As the training data only consists of screen space hair orientation. We propose a differentiable volumetric renderer $VolumetricRenderer(O_{world}, \Sigma)$ to render screen space hair orientation as well as body/hair masks from sampled world space orientation $O_{world} = \{ \mathbf{o}_{world}^{(i)} \}$ and occupancy $\Sigma = \{ \sigma^{(i)} \}$. To sample $O_{world}$ and $\Sigma$ for a pixel, we emit a camera ray with the known camera intrinsics and extrinsics on the filming plane. Then, the world space hair orientation and occupancy can be sampled along the camera ray. The volumetric rendering pipeline first projects the world space orientation to screen space, then integrate the screen space orientation with the sampled occupancy.
 
 To project hair orientation, we first need to convert the world space orientation $\mathbf{o}_{world}$ to an orientation vector in homogeneous coordinate $\mathbf{v}_{world} \in \mathbb{R}^{4}$. Given the camera extrinsic matrix $M \in \mathbb{R}^{4 \times 4}$, $\mathbf{v}_{world}$ can be projected to the view space by $\mathbf{v}_{view} = M\mathbf{v}_{world}$.
 
@@ -200,7 +200,7 @@ Our model is trained on a training set of 128 2D orientation maps of size 512x51
 
 To evaluate the performance of the model, we rendered the orientation field on 16 unseen camera views in the test set and evaluate the performance using rendered 2D orientation.
 
-We use PSNR (Peak Signal-to-Noise Ratio) for evaluation. The reconstructed 2D hair orientation map is compared with the ground truth 2D hair orientation by calculating the MSE, and the MSEs from all different viewpoints are averaged. This average MSE is then used to compute the overall PSNR metric. The complete formula is as follows:
+We use MSE (Mean Squared Error) and PSNR (Peak Signal-to-Noise Ratio) for evaluation. The reconstructed 2D hair orientation map is compared with the ground truth 2D hair orientation by calculating the MSE, and the MSEs from all different viewpoints are averaged. This average MSE is then used to compute the overall PSNR metric. The complete formula is as follows:
 
 \begin{align}
     \text{MSE}_k &=
@@ -257,9 +257,25 @@ To evaluate the performance of both models with the same metrics, we normalized 
 
 \section{Result and Discussion}
 
+
 By comparing our method with the two baselines, HairStep and NeRF, we can observe from the evaluation metrics PSNR and MSE that our results outperform the two baselines. The result shows in Table \ref{tab:loss_comparison}. Sample images are shown in Figure \ref{fig:result_grid}. We represent the direction of planar hair at a given point using vectors formed by the red and green channels of the RGB images.
 
-From the results, we can see that the overall vector field distribution of our method closely matches the ground truth. In contrast, HairStep introduces deviations by predicting some unintended horizontal components in areas where the hair should primarily extend vertically, leading to discrepancies with the ground truth. For NeRF, the reconstructed model inherently introduces certain errors compared to the original, causing the reconstructed image to blur the hair into indistinct regions. This prevents effective distinction of individual strands of hair, resulting in significant deviations in the predicted hair growth directions.
+\begin{table}[h]
+\centering
+\begin{tabular}{lccc}
+\toprule
+\textbf{Method} & \textbf{PSNR} & \textbf{MSE} \\ 
+\midrule
+NeOF (ours) & \textbf{15.06 dB} & \textbf{2026.75} \\
+HairStep & 13.97 dB & 2608.00 \\
+NeRF & 10.05 dB & 6429.77 \\
+\bottomrule
+\end{tabular}
+\caption{Comparison of losses between different methods.}
+\label{tab:loss_comparison}
+\end{table}
+
+From the results, we can see that the overall vector field distribution of our method closely matches the ground truth. However, HairStep makes some errors when predicting some unintended horizontal components in areas where the hair extends vertically. This leads to discrepancies with the ground truth. For NeRF, the reconstructed 3D model has some differences from the original model and its accuracy cannot effectively distinguish individual strands of hair. This causes the hair, which should appear as individual strands, to become a blurry region in images. As a result, it is hard to tell the strands apart, leading to large errors in predicting the hair growth directions. Thus, we can see that our model doing better at modeling the hair's orientation field and maintains better consistency with ground truth during reconstruction.
 
 \begin{figure}[h]
     \centering
@@ -288,25 +304,12 @@ From the results, we can see that the overall vector field distribution of our m
     \label{fig:result_grid}
 \end{figure}
 
-\begin{table}[h]
-\centering
-\begin{tabular}{lccc}
-\toprule
-\textbf{Method} & \textbf{PSNR} & \textbf{MSE} \\ 
-\midrule
-Ours & \textbf{15.06 dB} & \textbf{2026.75} \\
-HairStep & 13.97 dB & 2608.00 \\
-NeRF & 10.05 dB & 6429.77 \\
-\bottomrule
-\end{tabular}
-\caption{Comparison of losses between different methods.}
-\label{tab:loss_comparison}
-\end{table}
+
 
 \section{Conclusion}
+In this paper, we propose the Neural Orientation Field (NeOF) model, which uses an MLP to implicitly encode the orientation of hair in 3D space. Compared to traditional NeRF-based or 2D image-based approaches, our method effectively reconstructs high-resolution hair growth directions with greater precision and robustness. 
 
-% TODO: Conclusion. (Weiran, Zhenyu)
-
+Because our model can directly model the orientation field in 3D space, it enables the recovery of the entire hair direction as an editable 3D model, which allows for subsequent manual adjustments and refinements. In the future, we aim to realize a complete 3D reconstruction pipeline, enabling our method to directly output editable 3D models compatible with Blender, facilitating further editing. We believe this approach will provide a straightforward and efficient solution for sampling and automating the modeling of real human hair, significantly reducing the costs associated with traditional hair modeling in the visual effects and animation industries.
 
 \newpage
 
@@ -321,12 +324,12 @@ NeRF & 10.05 dB & 6429.77 \\
 
 COLMAP feature and camera pose preprocessing script; \texttt{colmap\_visualizer} with imagui and pyvista to help visualize the extracted point cloud/camera position; Blender camera pose extraction script and dataset generation; NeRF and NeOF camera ray generation algorithm, volumetric renderer, hierachical volume sampling, training script implementation; Introduction, related work, dataset, method, and implementation detail sections of final paper.
 
-\subsection{Weiran Xu}
-
-Contributed to building the human portrait dataset and applied HairStep for image preprocessing and hair strand direction extraction, preparing the data for analysis. Also wrote part of experiment section in the milestone report, detailing methodology and preliminary findings.
-
 \subsection{Zhenyu Zhang}
 
 Responsible for refactoring Tiny NeRF, do the training and testing related to Tiny NeRF, and implementing the code for 3D vector field reconstruction of hair growth. This included model code, loss computation code, camera view transformation and coordinate system conversion code, as well as the code of calculations for remapping 3D vectors in space to the camera frame. Also handle part of the model evaluation work, including the calculation of evaluation metrics and result visualization.
+
+\subsection{Weiran Xu}
+
+Contributed to building the human portrait dataset and applied HairStep for image preprocessing and hair strand direction extraction, preparing the data for analysis. Also wrote part of experiment section in the report, detailing methodology and preliminary findings.
 
 \end{document}
