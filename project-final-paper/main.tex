@@ -5,6 +5,7 @@
 \usepackage{datetime}
 \usepackage{amsfonts}
 \usepackage{amsmath}
+\usepackage{booktabs} % for professional tables
 
 \usepackage{graphicx}
 \usepackage{subcaption}
@@ -48,6 +49,10 @@
 
 \vskip 0.3in
 ]
+
+\begin{abstract}
+    Reconstructing 3D human hair is challenging due to its intricate, intertwined structure and fine details. We propose a Neural Orientation Field (NeOF) model that directly encodes hair’s growing direction and occupancy in 3D. Unlike conventional NeRF-based methods that rely on view-dependent radiance fields, our representation is view-independent and trained end-to-end from multiview 2D orientation maps. A novel volumetric renderer using differentiable projection of world-space orientations into screen-space, allowing supervision from multiple viewpoints. Experiments on synthetic datasets show that our approach recovers finer hair structures than baselines, establishing a robust, high-fidelity representation that can guide generative models or produce strand geometry directly.
+\end{abstract}
 
 \section{Introduction}
 
@@ -121,9 +126,8 @@ Our training set consists of 128 instances and our test set consists of 16 insta
 \section{Method}
 
 % TODO: Model structure. (Fangjun) DONE
-% TODO: Volumetric renderer for vector field. (Fangjun)
-% TODO: Occupancy integration and mask loss. (Fangjun)
-% TODO: Hierachical volumetric sampling for vector field. (Fangjun)
+% TODO: Volumetric renderer for vector field. (Fangjun) DONE
+% TODO: Occupancy integration and mask loss. (Fangjun) DONE
 
 \subsection{Neural Orientation Field (NeOF) Model}
 
@@ -133,7 +137,7 @@ The neural orientation field (NeOF) model we proposed consists of multiple MLP l
 
 As the training data only consists of screen space hair orientation. We proposed a differentiable volumetric renderer $VolumetricRenderer(O_{world}, \Sigma)$ to render screen space hair orientation as well as body/hair masks from sampled world space orientation $O_{world} = \{ \mathbf{o}_{world}^{(i)} \}$ and occupancy $\Sigma = \{ \sigma^{(i)} \}$. To sample $O_{world}$ and $\Sigma$ for a pixel, we emit a camera ray with the known camera intrinsics and extrinsics on the filming plane. Then, the world space hair orientation and occupancy can be sampled along the camera ray. The volumetric rendering pipeline first projects the world space orientation to screen space, then integrate the screen space orientation with the sampled occupancy.
 
-To project hair orientation, we first need to convert the world space orientation $\mathbf{o}_{world}$ to an orientation vector in homogeneous coordinate $\mathbf{v}_{world} \in \mathbb{R}^{4}$. Given the camera extrinsic matrix $M \in \mathbb{R}_{4x4}$, $\mathbf{v}_{world}$ can be projected to the view space by $\mathbf{v}_{view} = M\mathbf{v}_{world}$.
+To project hair orientation, we first need to convert the world space orientation $\mathbf{o}_{world}$ to an orientation vector in homogeneous coordinate $\mathbf{v}_{world} \in \mathbb{R}^{4}$. Given the camera extrinsic matrix $M \in \mathbb{R}^{4 \times 4}$, $\mathbf{v}_{world}$ can be projected to the view space by $\mathbf{v}_{view} = M\mathbf{v}_{world}$.
 
 Normally, to project a world space vector onto screen space, we need to first apply view transform to get view space projection, then apply perspective transform to get screen space projection. However, as we choose pinhole camera as our camera model, the screen space orientation vectors are independent of the camera intrinsics. In other words, $\mathbf{v}_{screen} = \mathbf{v}_{view} = M\mathbf{v}_{world}$
 
@@ -166,8 +170,9 @@ where $\delta_{i} = t_{i + 1} - t_{i}$. $\hat{V}(\mathbf{r})$, $\hat{B}(\mathbf{
 
 \section{Experiment}
 
+% TODO: Hierachical volumetric sampling for vector field. (Fangjun) DONE
 % TODO: Experiement setup. (Fangjun, Zhenyu) DONE
-% TODO: Implementation Details. (Fangjun)
+% TODO: Implementation Details. (Fangjun) DONE
 % TODO: Baseline setup. DONE
 
 \subsection{Implementation Details}
@@ -191,11 +196,6 @@ For hierarchical volume sampling, we trained a coarse and a fine model simultane
 
 Our model is trained on a training set of 128 2D orientation maps of size 512x512. We use Adam optimizer with $2e-4$ learning rate. For the coarse model, we use 6 levels of position encoding with a fixed sample rate of 16. For the fine model, we use 8 levels of position encoding with the maximum subdivided sample rate of 8. The model is trained for 8 epochs and the checkpoint with lowest loss on validation set is save.
 
-% Duplicated dataset section, removed.
-% \subsection{Datasets} 
-
-% To perform more precise model evaluation, we generated a dataset using Blender. For the same individual, the dataset includes 144 RGB hair photos with a resolution of 512x512 taken from different viewpoints, corresponding body and hair masks, camera parameters and pose matrices, as well as 2D hair orientations observed from the camera positions. The dataset for each individual is split into a training set with 128 images, a validation set with 16 images, and a test set with 16 images. 
-
 \subsection{Metrics}
 
 To evaluate the performance of the model, we rendered the orientation field on 16 unseen camera views in the test set and evaluate the performance using rendered 2D orientation.
@@ -203,8 +203,9 @@ To evaluate the performance of the model, we rendered the orientation field on 1
 We use PSNR (Peak Signal-to-Noise Ratio) for evaluation. The reconstructed 2D hair orientation map is compared with the ground truth 2D hair orientation by calculating the MSE, and the MSEs from all different viewpoints are averaged. This average MSE is then used to compute the overall PSNR metric. The complete formula is as follows:
 
 \begin{align}
-    \text{MSE}_k &= \frac{1}{M \cdot N \cdot 2} \\
-    & \quad \sum_{i=1}^M \sum_{j=1}^N \sum_{c=1}^2 \left(I_k (i,j,c) - K_k(i,j,c) \right)^2 \\
+    \text{MSE}_k &=
+    \frac{1}{M \cdot N \cdot 2}
+     \sum_{i=1}^M \sum_{j=1}^N \| I_k (i,j) - K_k(i,j)\|_2 ^2 \\
     \text{MSE}_\text{avg} &= \frac{1}{N_\text{images}} \sum_{k=1}^{N_\text{images}}\text{MSE}_k \\
     \text{PSNR}_\text{avg} &= 10 \cdot \log_{10} \left( \frac{\text{MAX}^2}{\text{MSE}_{\text{avg}}} \right)
 \end{align}
@@ -213,11 +214,13 @@ where $\text{MSE}_k$ is the MSE of image $k$ and its ground truth, $I_k$ and $K_
 
 \subsection{Baseline Method}
 
-We trained a NeRF model to represent the hair structure as a radiance field, leveraging it to infer hair orientation. Since NeRF does not inherently encode orientation information, we relied on HairStep to predict orientation. Observed that the output of NeRF is often blurred, consistent with findings from the original NeRF paper \cite{mildenhall_nerf_2020}, which noted that NeRF tends to capture low-frequency features early in training, making HairStep difficult to segment out hair and output reasonable hair direction, thus unable to maintain relevant direction information; see Figure \ref{fig:nerf_hairstep}.
+We choose NeRF \cite{mildenhall_nerf_2020} and HairStep \cite{zheng_hairstep_2023} as our baseline models. Since NeRF does not inherently encode hair orientation, and the HairStep model uses single view images to predict screen space hair orientation directly, we trained the NeRF model on rendered images to fit the radiance field. For each unseen views in the testing set, we first rendered colored images with the NeRF model. Then, we used the HairStep model to predict the screen space orientation on the rendered image. We also ran HairStep inference without NeRF to evaluate it's single view performance.
+
+Observed that the output of NeRF is often blurred, consistent with findings from the original NeRF paper \cite{mildenhall_nerf_2020}, which noted that NeRF tends to capture low-frequency features early in training, making HairStep difficult to segment out hair and output reasonable hair direction, thus unable to maintain relevant direction information; see Figure \ref{fig:nerf_hairstep}.
 
 \begin{figure}[h]
     \centering
-    \begin{subfigure}{0.48\textwidth}
+    \begin{subfigure}{0.22\textwidth}
         \centering
         \begin{subfigure}{0.48\textwidth}
             \centering
@@ -226,12 +229,12 @@ We trained a NeRF model to represent the hair structure as a radiance field, lev
         \hfill
         \begin{subfigure}{0.48\textwidth}
             \centering
-            \includegraphics[width=\textwidth]{./images/baseline-method/test_6_hairstep.jpg}
+            \includegraphics[width=\textwidth]{./images/baseline-method/test_6_hairstep.png}
         \end{subfigure}
-        \caption{origin rendered with hairstep}
+        \caption{HairStep}
     \end{subfigure}
-    \\
-    \begin{subfigure}{0.48\textwidth}
+    \hfill
+    \begin{subfigure}{0.22\textwidth}
         \begin{subfigure}{0.48\textwidth}
             \centering
             \includegraphics[width=\textwidth]{./images/baseline-method/pred_6_nerf.png}
@@ -239,22 +242,71 @@ We trained a NeRF model to represent the hair structure as a radiance field, lev
         \hfill
         \begin{subfigure}{0.48\textwidth}
             \centering
-            \includegraphics[width=\textwidth]{./images/baseline-method/pred_6_hairstep.jpg}
+            \includegraphics[width=\textwidth]{./images/baseline-method/pred_6_hairstep.png}
         \end{subfigure}
-        \caption{nerf predicted with hairstep}
+        \caption{NeRF with HairStep}
     \end{subfigure}
 
     \caption{Hairstep on rendered image/NeRF prediction}
     \label{fig:nerf_hairstep}
 \end{figure}
 
-\section{Result}
+Another difference between HairStep and our method is that HairStep predicts normalized hair orientation while our method captures the screen space projection of the world space hair orientation, which is not normalized. This means a hair strand growing perpendicular or parallel to the filming plane may have the same orientation in HairStep prediction. In contrast, our model will generate orientation vector with smaller magnitude for perpendicular strands.
 
-% TODO: Result. (Weiran, Zhenyu)
+To evaluate the performance of both models with the same metrics, we normalized the ground truth and NeOF output before evaluation.
+
+\section{Result and Discussion}
+
+By comparing our method with the two baselines, HairStep and NeRF, we can observe from the evaluation metrics PSNR and MSE that our results outperform the two baselines. The result shows in Table \ref{tab:loss_comparison}. Sample images are shown in Figure \ref{fig:result_grid}. We represent the direction of planar hair at a given point using vectors formed by the red and green channels of the RGB images.
+
+From the results, we can see that the overall vector field distribution of our method closely matches the ground truth. In contrast, HairStep introduces deviations by predicting some unintended horizontal components in areas where the hair should primarily extend vertically, leading to discrepancies with the ground truth. For NeRF, the reconstructed model inherently introduces certain errors compared to the original, causing the reconstructed image to blur the hair into indistinct regions. This prevents effective distinction of individual strands of hair, resulting in significant deviations in the predicted hair growth directions.
+
+\begin{figure}[h]
+    \centering
+    % First row
+    {\includegraphics[width=0.11\textwidth]{project-final-paper/images/groundtruth_orientation/output_test_4.png}}
+    {\includegraphics[width=0.11\textwidth]{project-final-paper/images/neof/output_test_4.png}}
+    {\includegraphics[width=0.11\textwidth]{project-final-paper/images/groundtruth_hairstep/output_test_4.png}}
+    {\includegraphics[width=0.11\textwidth]{project-final-paper/images/nerf_hairstep/output_test_4.png}} \\
+
+    {\includegraphics[width=0.11\textwidth]{project-final-paper/images/groundtruth_orientation/output_test_5.png}}
+    {\includegraphics[width=0.11\textwidth]{project-final-paper/images/neof/output_test_5.png}}
+    {\includegraphics[width=0.11\textwidth]{project-final-paper/images/groundtruth_hairstep/output_test_5.png}}
+    {\includegraphics[width=0.11\textwidth]{project-final-paper/images/nerf_hairstep/output_test_5.png}} \\
+    
+    {\includegraphics[width=0.11\textwidth]{project-final-paper/images/groundtruth_orientation/output_test_6.png}}
+    {\includegraphics[width=0.11\textwidth]{project-final-paper/images/neof/output_test_6.png}}
+    {\includegraphics[width=0.11\textwidth]{project-final-paper/images/groundtruth_hairstep/output_test_6.png}}
+    {\includegraphics[width=0.11\textwidth]{project-final-paper/images/nerf_hairstep/output_test_6.png}} \\
+    
+     \subcaptionbox{GT}{\includegraphics[width=0.11\textwidth]{project-final-paper/images/groundtruth_orientation/output_test_7.png}}
+     \subcaptionbox{Ours}{\includegraphics[width=0.11\textwidth]{project-final-paper/images/neof/output_test_7.png}}
+     \subcaptionbox{HairStep}{\includegraphics[width=0.11\textwidth]{project-final-paper/images/groundtruth_hairstep/output_test_7.png}}
+     \subcaptionbox{NeRF}{\includegraphics[width=0.11\textwidth]{project-final-paper/images/nerf_hairstep/output_test_7.png}}
+    
+    \caption{Normalized hair orientations, where (a) is the Ground Truth, (b) is the result our NeOF method, (c) is result of HairStep, and (d) is the result of traditional NeRF with HairStep}
+    \label{fig:result_grid}
+\end{figure}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lccc}
+\toprule
+\textbf{Method} & \textbf{PSNR} & \textbf{MSE} \\ 
+\midrule
+Ours & \textbf{15.06 dB} & \textbf{2026.75} \\
+HairStep & 13.97 dB & 2608.00 \\
+NeRF & 10.05 dB & 6429.77 \\
+\bottomrule
+\end{tabular}
+\caption{Comparison of losses between different methods.}
+\label{tab:loss_comparison}
+\end{table}
 
 \section{Conclusion}
 
 % TODO: Conclusion. (Weiran, Zhenyu)
+
 
 \newpage
 
@@ -267,7 +319,7 @@ We trained a NeRF model to represent the hair structure as a radiance field, lev
 
 \subsection{Fangjun Zhou}
 
-COLMAP feature and camera pose preprocessing script; \texttt{colmap\_visualizer} with imagui and pyvista to help visualize the extracted point cloud/camera position; Blender camera pose extraction script and dataset generation; NeRF and NeOF camera ray generation algorithm, volumetric renderer, hierachical volume sampling, training script implementation; Introduction, related work, dataset, method sections of final report.
+COLMAP feature and camera pose preprocessing script; \texttt{colmap\_visualizer} with imagui and pyvista to help visualize the extracted point cloud/camera position; Blender camera pose extraction script and dataset generation; NeRF and NeOF camera ray generation algorithm, volumetric renderer, hierachical volume sampling, training script implementation; Introduction, related work, dataset, method, and implementation detail sections of final paper.
 
 \subsection{Weiran Xu}
 
@@ -275,6 +327,6 @@ Contributed to building the human portrait dataset and applied HairStep for imag
 
 \subsection{Zhenyu Zhang}
 
-Responsible for refactoring Tiny NeRF, do the training and testing related to Tiny NeRF, and implementing the code for 3D vector field reconstruction of hair growth. This included model code, loss computation code, camera view transformation and coordinate system conversion code, as well as the code of calculations for remapping 3D vectors in space to the camera frame.
+Responsible for refactoring Tiny NeRF, do the training and testing related to Tiny NeRF, and implementing the code for 3D vector field reconstruction of hair growth. This included model code, loss computation code, camera view transformation and coordinate system conversion code, as well as the code of calculations for remapping 3D vectors in space to the camera frame. Also handle part of the model evaluation work, including the calculation of evaluation metrics and result visualization.
 
 \end{document}
