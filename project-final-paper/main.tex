@@ -95,25 +95,25 @@ Our training set consists of 128 instances and our test set consists of 16 insta
 
 \begin{figure}[h]
 	\centering
-	\begin{subfigure}{0.11\textwidth}
+	\begin{subfigure}{0.24\linewidth}
 		\centering
 		\includegraphics[width=\textwidth]{./images/dataset/0009_rendered.png}
 		\caption{rendered}
 	\end{subfigure}
 	\hfill
-	\begin{subfigure}{0.11\textwidth}
+	\begin{subfigure}{0.24\linewidth}
 		\centering
 		\includegraphics[width=\textwidth]{./images/dataset/0009_bodymask.png}
 		\caption{body mask}
 	\end{subfigure}
 	\hfill
-	\begin{subfigure}{0.11\textwidth}
+	\begin{subfigure}{0.24\linewidth}
 		\centering
 		\includegraphics[width=\textwidth]{./images/dataset/0009_hairmask.png}
 		\caption{hair mask}
 	\end{subfigure}
 	\hfill
-	\begin{subfigure}{0.11\textwidth}
+	\begin{subfigure}{0.24\linewidth}
         \centering
         \includegraphics[width=\textwidth]{./images/dataset/0009_hairdir.png}
         \caption{orientation}
@@ -135,14 +135,20 @@ The neural orientation field (NeOF) model we propose consists of multiple MLP la
 
 \subsection{Volumetric Rendering for Neural Orientation Field}
 
-As the training data only consists of screen space hair orientation. We propose a differentiable volumetric renderer $VolumetricRenderer(O_{world}, \Sigma)$ to render screen space hair orientation as well as body/hair masks from sampled world space orientation $O_{world} = \{ \mathbf{o}_{world}^{(i)} \}$ and occupancy $\Sigma = \{ \sigma^{(i)} \}$. To sample $O_{world}$ and $\Sigma$ for a pixel, we emit a camera ray with the known camera intrinsics and extrinsics on the filming plane. Then, the world space hair orientation and occupancy can be sampled along the camera ray. The volumetric rendering pipeline first projects the world space orientation to screen space, then integrate the screen space orientation with the sampled occupancy.
+As the training data only consists of screen space hair orientation, we propose a differentiable volumetric renderer $VolumetricRenderer(O_{world}, \Sigma)$ to render both screen-space hair orientation and body/hair masks from sampled world space orientation, $O_{world} = \{ \mathbf{o}_{world}^{(i)} \}$, and occupancy, $\Sigma = \{ \sigma^{(i)} \}$ (Figure~\ref{fig:volumetric-renderer}). To sample $O_{world}$ and $\Sigma$ for a pixel, we emit a camera ray with the known camera intrinsics and extrinsics on the filming plane. Then, the world space hair orientation and occupancy can be sampled along the camera ray. The volumetric rendering pipeline first projects the world space orientation to screen space, then integrate the screen space orientation with the sampled occupancy.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.9\linewidth]{./images/volumetric-renderer/volumetric-renderer.png}
+    \caption{Volumetric Renderer}
+    \label{fig:volumetric-renderer}
+\end{figure}
 
 To project hair orientation, we first need to convert the world space orientation $\mathbf{o}_{world}$ to an orientation vector in homogeneous coordinate $\mathbf{v}_{world} \in \mathbb{R}^{4}$. Given the camera extrinsic matrix $M \in \mathbb{R}^{4 \times 4}$, $\mathbf{v}_{world}$ can be projected to the view space by $\mathbf{v}_{view} = M\mathbf{v}_{world}$.
 
-Normally, to project a world space vector onto screen space, we need to first apply view transform to get view space projection, then apply perspective transform to get screen space projection. However, as we choose pinhole camera as our camera model, the screen space orientation vectors are independent of the camera intrinsics. In other words, $\mathbf{v}_{screen} = \mathbf{v}_{view} = M\mathbf{v}_{world}$
+Normally, to project a world space vector onto screen space, we need to first apply view transform to get view space projection, then apply perspective transform to get screen space projection. However, as we choose pinhole camera as our camera model, the screen space orientation vectors are independent of the camera intrinsics. In other words, $\mathbf{v}_{screen} = \mathbf{v}_{view} = M\mathbf{v}_{world}$.
 
-Similar to the volumetric rendering function defined in NeRF \cite{mildenhall_nerf_2020}, our rendering function for screen space orientation can be written as
-
+Similar to the volumetric rendering function defined in NeRF \cite{mildenhall_nerf_2020}, our rendering function for screen space orientation can be written as:
 \begin{align}
 	V(\mathbf{r}) & = \int_{t_{n}}^{t_{f}} T(t) \sigma_{hair}(\mathbf{r}(t)) M \mathbf{v}_{world}(\mathbf{r}(t)) dt \\
 	T(t) & = exp(-\int_{t_{n}}^{t} \sigma_{body}(\mathbf{r}(s)) ds)
@@ -151,14 +157,12 @@ Similar to the volumetric rendering function defined in NeRF \cite{mildenhall_ne
 One important difference between our model and NeRF is we use two separate occupancy for body and hair, while in NeRF only one occupancy is used to integrate camera rays. In our case, camera rays can be blocked by face and body that doesn't contribute to the final integration. Therefore, we use $\sigma_{body}$ instead of $\sigma_{hair}$ to integrate residual ray $T(t)$.
 
 As we provide body mask and hair mask in the training data, we can also use the following rendering function to render body mask $B(\mathbf{r})$ and hair mask $H(\mathbf{r})$:
-
 \begin{align}
 	B(\mathbf{r}) & = 1 - exp(-\int_{t_{n}}^{t_{f}} \sigma_{body}(\mathbf{r}(s)) ds) \\
 	H(\mathbf{r}) & = 1 - exp(-\int_{t_{n}}^{t_{f}} \sigma_{hair}(\mathbf{r}(s)) ds)
 \end{align}
 
 Similar to the numerical estimation of radiance integration mentioned in NeRF, we use numerical estimation of orientation and mask integration defined as follows:
-
 \begin{align}
 	\hat{V}(\mathbf{r}) & = \sum_{i=1}^{N} T_{i} (1 - exp(-\sigma_{hair}^{(i)} \delta_{i})) M \mathbf{v}_{world}^{(i)} \\
 	T_{i} & = exp(-\sum_{j=1}^{i} \sigma_{body}^{(j)} \delta_{j}) \\
@@ -182,7 +186,6 @@ where $\delta_{i} = t_{i + 1} - t_{i}$. $\hat{V}(\mathbf{r})$, $\hat{B}(\mathbf{
 We use position encoding and hierarchical volume sampling mentioned in \cite{mildenhall_nerf_2020} to improve convergence rate in our implementation.
 
 The position encoding function is defined as:
-
 \begin{align}
     \gamma(p)_{2i} &= sin(2^{i} \pi p) \\
     \gamma(p)_{2i + 1} &= cos(2^{i} \pi p)
@@ -198,10 +201,9 @@ Our model is trained on a training set of 128 2D orientation maps of size 512x51
 
 \subsection{Metrics}
 
-To evaluate the performance of the model, we rendered the orientation field on 16 unseen camera views in the test set and evaluate the performance using rendered 2D orientation.
+To evaluate the performance of the model, we rendered the orientation field on 16 unseen camera poses and evaluate the performance using rendered 2D orientation.
 
 We use MSE (Mean Squared Error) and PSNR (Peak Signal-to-Noise Ratio) for evaluation. The reconstructed 2D hair orientation map is compared with the ground truth 2D hair orientation by calculating the MSE, and the MSEs from all different viewpoints are averaged. This average MSE is then used to compute the overall PSNR metric. The complete formula is as follows:
-
 \begin{align}
     \text{MSE}_k &=
     \frac{1}{M \cdot N \cdot 2}
@@ -220,7 +222,7 @@ Observed that the output of NeRF is often blurred, consistent with findings from
 
 \begin{figure}[h]
     \centering
-    \begin{subfigure}{0.22\textwidth}
+    \begin{subfigure}{0.48\linewidth}
         \centering
         \begin{subfigure}{0.48\textwidth}
             \centering
@@ -234,7 +236,7 @@ Observed that the output of NeRF is often blurred, consistent with findings from
         \caption{HairStep}
     \end{subfigure}
     \hfill
-    \begin{subfigure}{0.22\textwidth}
+    \begin{subfigure}{0.48\linewidth}
         \begin{subfigure}{0.48\textwidth}
             \centering
             \includegraphics[width=\textwidth]{./images/baseline-method/pred_6_nerf.png}
@@ -271,7 +273,7 @@ HairStep & 13.97 dB & 2608.00 \\
 NeRF & 10.05 dB & 6429.77 \\
 \bottomrule
 \end{tabular}
-\caption{Comparison of losses between different methods.}
+\caption{Comparison of losses between different methods}
 \label{tab:loss_comparison}
 \end{table}
 
@@ -280,27 +282,27 @@ From the results, we can see that the overall vector field distribution of our m
 \begin{figure}[h]
     \centering
     % First row
-    {\includegraphics[width=0.11\textwidth]{project-final-paper/images/groundtruth_orientation/output_test_4.png}}
-    {\includegraphics[width=0.11\textwidth]{project-final-paper/images/neof/output_test_4.png}}
-    {\includegraphics[width=0.11\textwidth]{project-final-paper/images/groundtruth_hairstep/output_test_4.png}}
-    {\includegraphics[width=0.11\textwidth]{project-final-paper/images/nerf_hairstep/output_test_4.png}} \\
+    {\includegraphics[width=0.24\linewidth]{project-final-paper/images/groundtruth_orientation/output_test_4.png}}
+    {\includegraphics[width=0.24\linewidth]{project-final-paper/images/neof/output_test_4.png}}
+    {\includegraphics[width=0.24\linewidth]{project-final-paper/images/groundtruth_hairstep/output_test_4.png}}
+    {\includegraphics[width=0.24\linewidth]{project-final-paper/images/nerf_hairstep/output_test_4.png}} \\
 
-    {\includegraphics[width=0.11\textwidth]{project-final-paper/images/groundtruth_orientation/output_test_5.png}}
-    {\includegraphics[width=0.11\textwidth]{project-final-paper/images/neof/output_test_5.png}}
-    {\includegraphics[width=0.11\textwidth]{project-final-paper/images/groundtruth_hairstep/output_test_5.png}}
-    {\includegraphics[width=0.11\textwidth]{project-final-paper/images/nerf_hairstep/output_test_5.png}} \\
+    {\includegraphics[width=0.24\linewidth]{project-final-paper/images/groundtruth_orientation/output_test_5.png}}
+    {\includegraphics[width=0.24\linewidth]{project-final-paper/images/neof/output_test_5.png}}
+    {\includegraphics[width=0.24\linewidth]{project-final-paper/images/groundtruth_hairstep/output_test_5.png}}
+    {\includegraphics[width=0.24\linewidth]{project-final-paper/images/nerf_hairstep/output_test_5.png}} \\
     
-    {\includegraphics[width=0.11\textwidth]{project-final-paper/images/groundtruth_orientation/output_test_6.png}}
-    {\includegraphics[width=0.11\textwidth]{project-final-paper/images/neof/output_test_6.png}}
-    {\includegraphics[width=0.11\textwidth]{project-final-paper/images/groundtruth_hairstep/output_test_6.png}}
-    {\includegraphics[width=0.11\textwidth]{project-final-paper/images/nerf_hairstep/output_test_6.png}} \\
+    {\includegraphics[width=0.24\linewidth]{project-final-paper/images/groundtruth_orientation/output_test_6.png}}
+    {\includegraphics[width=0.24\linewidth]{project-final-paper/images/neof/output_test_6.png}}
+    {\includegraphics[width=0.24\linewidth]{project-final-paper/images/groundtruth_hairstep/output_test_6.png}}
+    {\includegraphics[width=0.24\linewidth]{project-final-paper/images/nerf_hairstep/output_test_6.png}} \\
     
-     \subcaptionbox{GT}{\includegraphics[width=0.11\textwidth]{project-final-paper/images/groundtruth_orientation/output_test_7.png}}
-     \subcaptionbox{Ours}{\includegraphics[width=0.11\textwidth]{project-final-paper/images/neof/output_test_7.png}}
-     \subcaptionbox{HairStep}{\includegraphics[width=0.11\textwidth]{project-final-paper/images/groundtruth_hairstep/output_test_7.png}}
-     \subcaptionbox{NeRF}{\includegraphics[width=0.11\textwidth]{project-final-paper/images/nerf_hairstep/output_test_7.png}}
+     \subcaptionbox{GT}{\includegraphics[width=0.24\linewidth]{project-final-paper/images/groundtruth_orientation/output_test_7.png}}
+     \subcaptionbox{Ours}{\includegraphics[width=0.24\linewidth]{project-final-paper/images/neof/output_test_7.png}}
+     \subcaptionbox{HairStep}{\includegraphics[width=0.24\linewidth]{project-final-paper/images/groundtruth_hairstep/output_test_7.png}}
+     \subcaptionbox{NeRF}{\includegraphics[width=0.24\linewidth]{project-final-paper/images/nerf_hairstep/output_test_7.png}}
     
-    \caption{Normalized hair orientations, where (a) is the Ground Truth, (b) is the result our NeOF method, (c) is result of HairStep, and (d) is the result of traditional NeRF with HairStep}
+    \caption{Normalized hair orientations, where (a) is the Ground Truth, (b) is the result our NeOF method, (c) is result of HairStep, and (d) is the result of traditional NeRF with HairStep.}
     \label{fig:result_grid}
 \end{figure}
 
